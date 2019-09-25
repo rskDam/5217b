@@ -47,3 +47,29 @@ asbjoernerher
 ```{r}
 gitgood
 ```
+<<<<<<< HEAD
+=======
+
+uenig
+
+```{r}
+abc <- 1:10
+cat(abc)
+1234
+1
+```
+
+```{r}
+uselesskid
+```
+
+```{r}
+#crack your own spine
+```
+
+
+i er nogle perkere
+
+
+
+>>>>>>> 6b3ab2506fe232f74eb5da12cafbafd50b8b8b54
