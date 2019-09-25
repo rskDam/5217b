@@ -16,7 +16,7 @@ When you click the **Knit** button a document will be generated that includes bo
 ```{r cars}
 summary(cars)
 ```
-
+hej
 
 ```{r}
 2+2
@@ -26,8 +26,9 @@ summary(cars)
 4+4
 ```
 
-
-
+```{r}
+#SBBND
+```
 
 ```{r}
 adsasdsa
@@ -45,10 +46,42 @@ asbjoernerher
 ```
 
 ```{r}
-#getraped
+adsfsad
+f
+dsaf
+dsfds
+f
+asf
+dsaf
+dasf
+ds
+fdfds
+
+
 ```
 
+
+
+```{r}
+abc <- 1:10
+cat(abc)
+1234
+1
+```
+
+<<<<<<< HEAD
 ```{r}
 uselesskid
 ```
+=======
+
+```{r}
+#crack your own spine
+```
+
+
+
+
+
+>>>>>>> c988f5af96652283fc991cbdaa8e912fe4c42b88
 
