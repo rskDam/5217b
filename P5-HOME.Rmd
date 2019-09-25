@@ -1,0 +1,133 @@
+---
+title: "P5-HOME"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(DT)
+
+library(rvest)
+library(GGally)
+
+# load("C:/Users/rasmu/OneDrive - Aalborg Universitet/0P5/R-projekt-p5/HOME dataset updated/HOME.Rda")
+# load("D:/OneDrive - Aalborg Universitet/0P5/R-projekt-p5/HOME dataset updated/HOME.Rda")
+```
+
+```{r eval=FALSE, include=FALSE}
+length(which(HOME$Liggetid == 0))
+
+summary(HOME$Liggetid)
+length(which(is.na(HOME$Liggetid)))
+
+any(is.na(HOME$Liggetid))
+
+
+postnummer_hjemmeside <- html("https://edemann.dk/liste-danske-postnumre-og-byer/")
+postnummer <- postnummer_hjemmeside %>%
+  html_nodes("table") %>%
+  .[[1]] %>%
+  html_table()
+names(postnummer) <- c("Postnummer", "By")
+
+length(HOME$Postnr)
+length(table(HOME$Postnr))
+
+length(postnummer$Postnummer)
+
+
+
+```
+
+
+
+```{r eval=FALSE, include=FALSE}
+
+ggplot(HOME, aes(OmbygningSket, Kontantpris, color = HOME$OmbygningSket)) +
+  geom_point() +
+  theme_bw() +
+  geom_abline()
+
+ggplot(HOME, aes(HOME$Salgsdato, HOME$Kontantpris)) +
+  geom_point(size = 0.5) +
+  geom_abline()
+
+length(HOME$Kontantpris)
+b <- HOME$Kontantpris < 3000000
+
+length(HOME$Kontantpris[b])
+
+a3 <- cbind(a1,a2)
+
+
+ggplot(subset(HOME, Postnr == 9430), aes(Salgsdato, Kontantpris)) +
+  geom_point() +
+  theme_bw()
+
+```
+
+
+
+
+```{r echo=FALSE}
+
+# datatable(subset(HOME, HOME$Postnr == 9430), options = list(pageLength = 5))
+
+library("dataMaid")
+
+
+
+makeDataReport(HOME, output = "pdf", ordering = "asIs")
+
+
+
+
+```
+
+
+
+```{r Lineaer model forsoeg}
+
+EL_HOME <- HOME %>% filter(EjdType == "Ejerlejlighed")
+EL_AAL_HOME <- EL_HOME %>% filter(Postnr == 9000)
+model_HOME <- lm(Kontantpris ~ Boligareal + Liggetid + Alder, data = HOME)
+model_EL_HOME <- lm(Kontantpris ~ Boligareal + Liggetid + Alder, data = EL_HOME)
+model_EL_AAL_HOME <- lm(Kontantpris ~ Boligareal + Liggetid + Alder, data = EL_AAL_HOME)
+summary(model)
+summary(model_EL_HOME)
+summary(model_EL_AAL_HOME)
+confint(model)
+confint(model_EL_HOME)
+confint(model_EL_AAL_HOME)
+
+HOME_pairs <- EL_AAL_HOME %>% select(Kontantpris, Boligareal, Liggetid)
+HOME_pairs_plot <- ggpairs(HOME_pairs)
+
+mpris_EL_AAL_HOME <- EL_AAL_HOME %>% filter(Kontantpris < 1500000 & Kontantpris > 1000000) 
+  # %>% na.omit(mpris_EL_AAL_HOME$Opfoerelsesaar)
+model_mpris_EL_AAL_HOME <- lm(Kontantpris ~ Boligareal + Liggetid + Alder, data = mpris_EL_AAL_HOME)
+summary(model_mpris_EL_AAL_HOME)
+
+
+EL_HOME_na.omit <- EL_HOME %>% na.omit()
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
