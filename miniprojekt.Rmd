@@ -45,18 +45,5 @@ asbjoernerher
 ```
 
 ```{r}
-adsfsad
-f
-dsaf
-dsfds
-f
-asf
-dsaf
-dasf
-ds
-fdfds
-
-
+#getraped
 ```
-
-
