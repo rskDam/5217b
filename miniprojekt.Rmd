@@ -16,7 +16,7 @@ When you click the **Knit** button a document will be generated that includes bo
 ```{r cars}
 summary(cars)
 ```
-hej
+
 
 ```{r}
 2+2
@@ -26,9 +26,8 @@ hej
 4+4
 ```
 
-```{r}
-#SBBND
-```
+
+
 
 ```{r}
 adsasdsa
@@ -46,19 +45,13 @@ asbjoernerher
 ```
 
 ```{r}
-adsfsad
-f
-dsaf
-dsfds
-f
-asf
-dsaf
-dasf
-ds
-fdfds
-
-
+gitgood
 ```
+<<<<<<< HEAD
+=======
+
+
+Test
 
 uenig
 
@@ -80,5 +73,4 @@ uselesskid
 
 i er nogle perkere
 
-
-
+jjjjjjjji
