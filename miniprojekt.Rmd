@@ -46,5 +46,33 @@ asbjoernerher
 ```
 
 ```{r}
-#getraped
+adsfsad
+f
+dsaf
+dsfds
+f
+asf
+dsaf
+dasf
+ds
+fdfds
+
+
 ```
+
+
+
+```{r}
+abc <- 1:10
+cat(abc)
+1234
+1
+```
+
+
+
+
+
+
+
+
