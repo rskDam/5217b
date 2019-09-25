@@ -72,10 +72,16 @@ cat(abc)
 1
 ```
 
+```{r}
+uselesskid
+```
+
+```{r}
+#crack your own spine
+```
 
 
-
-
+i er nogle perkere
 
 
 
