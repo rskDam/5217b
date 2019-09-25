@@ -16,7 +16,7 @@ When you click the **Knit** button a document will be generated that includes bo
 ```{r cars}
 summary(cars)
 ```
-
+hej
 
 ```{r}
 2+2
@@ -29,7 +29,6 @@ summary(cars)
 ```{r}
 #SBBND
 ```
-
 
 ```{r}
 adsasdsa
