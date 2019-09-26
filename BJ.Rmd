@@ -50,7 +50,15 @@ ms <- function(a,b) a + b * cars$speed
 
 f.i <- function(a,b) (ms(a,b) - cars$dist)^2
 
-f <- function(a,b) 1/length(f.i(a,b))*sum(f.i(a,b)) 
+f <- function(a,b) 1/length(f.i(a,b))*sum(f.i(a,b))
+```
+
+Herefter udregnes gradienten af f.i for at kunne finde retningen $p_k$ i gradient decent.
+Funktionen af $f_i$ kan skrives som $f_i(a,b)=(a+bs_i - d_i)^2$, hvorved $\frac{\partial}{\partial a}f_i = 2(a + b s_i - d_i)$ og $\frac{\partial}{\partial b}f_i = 2(a + b s_i - d_i)s_i$. De to funktioner skrives ind som kode
+```{r}
+part.a <- function(a,b) 2(a + b* cars$speed - cars$dist)
+
+part.b <- function(a,b) 2(a + b* cars$speed - cars$dist)*cars$speed
 
 
 ```
