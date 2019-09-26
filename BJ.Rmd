@@ -5,12 +5,14 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(numDeriv)
 ```
 
 In this self study session we will consider the `cars` dataset (see `?cars`):
 
 ```{r}
 head(cars)
+car <- cars
 ```
 
 It consists of `r nrow(cars)` cars and was recorded in the 1920s. It has 2 columns: `speed` (speed [mph]) and `dist` (stopping distance [ft]):
@@ -39,6 +41,21 @@ Below, you are asked to illustrate. You can try both static graphics and with an
 Exercises:
 
 1. What is the gradient of $f$?
+    * Først defineres de to funktioner, f og f.i
+```{r}
+s <- cars$speed
+d <- cars$dist
+
+ms <- function(a,b) a + b * cars$speed
+
+f.i <- function(a,b) (ms(a,b) - cars$dist)^2
+
+f <- function(a,b) 1/length(f.i(a,b))*sum(f.i(a,b)) 
+
+
+```
+
+
 2. Implement gradient descent and then use it to find the best straight line.
     * What is meant by *the best* straight line in relation to the objective function above?
     * Discuss different ways to determine the step sizes.
