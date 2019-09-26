@@ -35,8 +35,7 @@ f <- function(ab) {
 }
 
 d_f <- function(ab) {
-  c(1/n * sum(2 * (ab[1] + ab[2] * cars$speed - cars$dist)),
-     1/n * sum(2 * (ab[1] + ab[2] * cars$speed - cars$dist) * cars$dist ))
+  grad(f,ab)
 }
 
 dd_f <- function(ab) {
