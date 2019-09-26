@@ -52,7 +52,24 @@ backtrack <- function(a_bar = 3, rho = 0.3, c = 0.2, func = f, Dfunc = d_f, x_k 
   a
 }
 
-optimer <- function(x_0 = ab) {
+optimer_identitet <- function(x_0 = ab) {
+  x_k <- x_0
+  a_k <- 2
+  itt <- 0
+  while (norm(t(d_f(x_k))) > 1e-5) {
+    itt <- 1 + itt
+    p_k <- -d_f(x_k)
+    a_k <- backtrack(a_k, rho = 0.5, c = 0.001, f, d_f, x_k)
+    x_k <- x_k + a_k * t(p_k)
+    if (itt == 100000) {
+      break
+    }
+  }
+  cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt)
+}
+optimer_identitet()
+
+optimer_newton <- function(x_0 = ab) {
   x_k <- x_0
   a_k <- 2
   itt <- 0
@@ -67,7 +84,7 @@ optimer <- function(x_0 = ab) {
   }
   cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt)
 }
-optimer()
+optimer_newton()
 
 optim(ab, f, hessian = TRUE)
 
