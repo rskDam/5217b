@@ -8,6 +8,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(numDeriv)
+library(plotly)
 data("cars")
 ```
 
@@ -44,7 +45,7 @@ dd_f <- function(ab) {
   hessian(f,ab)
 }
 
-backtrack <- function(a_bar = 3, rho = 0.3, c = 0.2, c_2 = 0.4, func = f, Dfunc = d_f, x_k = ab) {
+backtrack <- function(a_bar = 3, rho = 0.3, c = 0.2, func = f, Dfunc = d_f, x_k = ab, c_2 = 0.5) {
   a <- a_bar
   itt <- 0
   while ( (func(x_k + a * (-Dfunc(x_k)) ) ) > (func(x_k) + c * a * t(Dfunc(x_k)) %*% (-Dfunc(x_k))) ) {
@@ -88,29 +89,41 @@ optimer_newton <- function(x_0 = ab) {
   itt <- 0
   steps <- c()
   x_plot <- c()
-  f_plot <- c()
+  y_plot <- c()
   plot(dist ~ speed, cars)
-  while (norm(t(d_f(x_k))) > 1e-5) {
+  while (norm(t(d_f(x_k))) > 1e-4) {
     itt <- 1 + itt
     p_k <- solve(dd_f(x_k), -d_f(x_k))
     a_k <- backtrack(a_k, rho = 0.5, c = 0.01, f, d_f, x_k)
     x_k <- x_k + a_k * t(p_k)
     if (itt %% 50 == 0) {
       abline(x_k)
+      x_plot[itt/50] <- x_k[1]
+      y_plot[itt/50] <- x_k[2]
     }
     steps[itt] <- a_k
     if (itt == 100000) {
       break
     }
   }
-  cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
+  cbind(x_plot,y_plot)
+  # cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
 }
-optimer_newton()
+xy_akse <- optimer_newton()
+funktions_akse <- apply(xy_akse, 1, f)
+plot_ly(x = xy_akse[,1], y = xy_akse[,2], z = funktions_akse, type = "scatter3d", mode = "markers")
 
+test_x <- seq(-25, 0, by = 0.01)
+test_y <- seq(1, 5, by = 0.01 * 4/25)
+test_funk <- apply(cbind(test_x, test_y), 1, f)
+
+
+plot_ly(x = test_x, y = test_y, z = test_funk, type = "scatter3d", mode = "markers")
+
+summary(lm(cars$dist ~ cars$speed))
 
 optim(ab, f, hessian = TRUE)
 
-abline(-17.57909, 3.932409)
 
 phi_lig_nul <- function(x_k) {
   1/n * sum((x_k[2] * cars$speed + x_k[1] - cars$dist) /(d_f(x_k)[2] * cars$speed + d_f(x_k)[1]))
@@ -164,6 +177,9 @@ optimer_newton_phi <- function(x_0 = ab) {
   cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
 }
 optimer_newton_phi()
+
+
+
 ```
 
 
