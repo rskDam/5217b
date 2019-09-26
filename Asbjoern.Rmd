@@ -26,3 +26,36 @@ plot(pressure)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+```{r}
+plot(dist ~speed, cars)
+s <- cars[1]
+d <- cars[2]
+m <- function(s) {
+  a+b*s
+}
+pp <- seq(1,2,1)
+
+fb <- function(a,b) {
+  k <- seq(1,50,1)
+  for (i in 1:50) {
+    k[i]=2*(a+b*s[i,1]+d[i,1])*s[i,1]
+    
+  }
+  cat(sum(k))
+}
+fa <- function(a,b) {
+  k <- seq(1,50,1)
+  for (i in 1:50) {
+    k[i]=2*(a+b*s[i,1]+d[i,1])
+    
+  }
+  cat(sum(k))
+}
+
+
+```
+
+
+
