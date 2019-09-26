@@ -5,24 +5,125 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(numDeriv)
+data("cars")
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+#Opg. 1
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Gradienten er
 
-```{r cars}
-summary(cars)
+$\begin{bmatrix} \frac{1}{n} \sum_i^n 2(a + bs_i - d_i) \\ \frac{1}{n} \sum_i^n 2(a + bs_i -d_i)s_i \end{bmatrix}$
+
+
+```{r Opg. 1}
+ab <- c(1,1)
+n <- 50
+ms <- function(ab) {
+  ab[1] + ab[2] * cars$speed
+}
+
+f_i <- function(ab) {
+  (ms(ab) - cars$dist)^2
+}
+
+f <- function(ab) {
+  1/n * sum(f_i(ab))
+}
+
+d_f <- function(ab) {
+  c(1/n * sum(2 * (ab[1] + ab[2] * cars$speed - cars$dist)),
+     1/n * sum(2 * (ab[1] + ab[2] * cars$speed - cars$dist) * cars$dist ))
+}
+
+dd_f <- function(ab) {
+  hessian(f,ab)
+}
+
+backtrack <- function(a_bar = 3, rho = 0.3, c = 0.2, func = f, Dfunc = d_f, x_k = ab) {
+  a <- a_bar
+  itt <- 0
+  while ( (func(x_k + a * (-Dfunc(x_k)) ) ) > (func(x_k) + c * a * t(Dfunc(x_k)) %*% (-Dfunc(x_k))) ) {
+    itt <- itt + 1
+    a <- rho * a
+  }
+  a
+}
+
+optimer <- function(x_0 = ab) {
+  x_k <- x_0
+  a_k <- 2
+  itt <- 0
+  while (norm(t(d_f(x_k))) > 1e-5) {
+    itt <- 1 + itt
+    p_k <- solve(dd_f(x_k), -d_f(x_k))
+    a_k <- backtrack(a_k, rho = 0.5, c = 0.001, f, d_f, x_k)
+    x_k <- x_k + a_k * t(p_k)
+    if (itt == 100000) {
+      break
+    }
+  }
+  cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt)
+}
+optimer()
+
+optim(ab, f, hessian = TRUE)
+
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+```{r gammel inspo}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+
+y <- c(1.5,0.5)
+
+funk <- function(x) {
+  x1 <- x[1]
+  x2 <- x[2]
+  (1- x1)^2 + 100 * (x2 - x1^2)^2
+}
+
+dfunk <- function(x) {
+  grad(funk,x)
+}
+
+ddfunk <- function(x) {
+  hessian(funk,x)
+}
+
+backtrack <- function(a_bar = 3, rho = 0.3, c = 0.2, func = funk, Dfunc = dfunk, x_k = y) {
+  a <- a_bar
+  itt <- 0
+  while ( (func(x_k + a * (-Dfunc(x_k)) ) ) > (func(x_k) + c * a * t(Dfunc(x_k)) %*% (-Dfunc(x_k))) ) {
+    itt <- itt + 1
+    a <- rho * a
+  }
+  a
+}
+backtrack()
+
+
+
+optimer <- function(x_0 = y) {
+  x_k <- x_0
+  a_k <- 2
+  itt <- 0
+  while (norm(t(dfunk(x_k))) > 1e-5) {
+    itt <- 1 + itt
+    p_k <- solve(ddfunk(x_k), -dfunk(x_k))
+    a_k <- backtrack(a_k, rho = 0.3, c = 0.2, funk, dfunk, x_k)
+    x_k <- x_k + a_k * t(p_k)
+    if (itt == 10000000) {
+      break
+    }
+  }
+  cat("x* = ", x_k, "f(x*) =", funk(x_k), "iteration =", itt)
+}
+optimer()
+
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
