@@ -46,27 +46,52 @@ Exercises:
 s <- cars$speed
 d <- cars$dist
 
-ms <- function(a,b) a + b * cars$speed
+ms <- function(ab) ab[1] + ab[2] * cars$speed
 
-f.i <- function(a,b) (ms(a,b) - cars$dist)^2
+f.i <- function(ab) (ms(ab) - cars$dist)^2
 
-f <- function(a,b) 1/length(f.i(a,b))*sum(f.i(a,b))
+f <- function(ab) 1/length(f.i(ab))*sum(f.i(ab))
 ```
 
 Herefter udregnes gradienten af f.i for at kunne finde retningen $p_k$ i gradient decent.
-Funktionen af $f_i$ kan skrives som $f_i(a,b)=(a+bs_i - d_i)^2$, hvorved $\frac{\partial}{\partial a}f_i = 2(a + b s_i - d_i)$ og $\frac{\partial}{\partial b}f_i = 2(a + b s_i - d_i)s_i$. De to funktioner skrives ind som kode
+Funktionen af $f_i$ kan skrives som $f_i(a,b)=(a+bs_i - d_i)^2$, hvorved $\frac{\partial}{\partial a}f_i = 2(a + b s_i - d_i)$ og $\frac{\partial}{\partial b}f_i = 2(a + b s_i - d_i)s_i$. De to funktioner skrives ind som kode, og funktionen $f$ skrives også ind; altså summen af de to $f_i$ funktioner
 ```{r}
-part.a <- function(a,b) 2(a + b* cars$speed - cars$dist)
+part.a <- function(ab) 1/length(cars$speed) * sum(2*(ab[1] + ab[2]* cars$speed - cars$dist))
 
-part.b <- function(a,b) 2(a + b* cars$speed - cars$dist)*cars$speed
+part.b <- function(ab) 1/length(cars$speed) * sum(2*(ab[1] + ab[2]* cars$speed - cars$dist)*cars$speed)
 
+grad.ab <- function(ab) c(1/length(cars$speed) * sum(2*(ab[1] + ab[2]* cars$speed - cars$dist)), 1/length(cars$speed) * sum(2*(ab[1] + ab[2]* cars$speed - cars$dist)*cars$speed))
 
 ```
 
-
 2. Implement gradient descent and then use it to find the best straight line.
+```{r}
+ab_0 <- c(1,1)
+alpha <- 0.001
+ab <- ab_0
+itt <- 0
+while (norm(t(grad.ab(ab))) > 0.001){
+  itt <- itt + 1
+  p_k <- -grad.ab(ab)
+  ab <- ab + alpha*p_k
+}
+```
+Forløblig implemtering, dobbelttjekkes med optim-funktionen i R
+```{r}
+optim(c(1,1),f)
+```
+Implementeringen giver cirka de korrekte værdier - usikkerheden kan skyldesvirker kun for små $\alpha$, hvorfor det ville være en fordel at implemtere andre måder at vælge alpha på. Med den nuværende skridtlængde benyttes følgende antal itterationer:
+```{r}
+itt
+```
+Dette forsøger jeg at forbedre:
+
     * What is meant by *the best* straight line in relation to the objective function above?
+Det er den rette linje, som minimerer residualerne mest.
+
     * Discuss different ways to determine the step sizes.
+Første metode at bestemme 
+
 3. Try with different ways to choose step sizes and illustrate it (including plotting the objective function and the iterates, $\{x_k\}_k$). 
     * (Technically, it may be easier to have an algorithm for each way of choosing step size.)
 4. Show some iterates in a plot showing the data (e.g. `plot(dist ~ speed, cars)`).
