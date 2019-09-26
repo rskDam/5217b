@@ -83,12 +83,15 @@ optimer_newton <- function(x_0 = ab) {
   steps <- c()
   x_plot <- c()
   f_plot <- c()
+  plot(dist ~ speed, cars)
   while (norm(t(d_f(x_k))) > 1e-5) {
     itt <- 1 + itt
     p_k <- solve(dd_f(x_k), -d_f(x_k))
     a_k <- backtrack(a_k, rho = 0.5, c = 0.01, f, d_f, x_k)
     x_k <- x_k + a_k * t(p_k)
-    abline(x_k)
+    if (itt %% 50 == 0) {
+      abline(x_k)
+    }
     steps[itt] <- a_k
     if (itt == 100000) {
       break
@@ -101,7 +104,6 @@ optimer_newton()
 
 optim(ab, f, hessian = TRUE)
 
-plot(dist ~ speed, cars)
 abline(-17.57909, 3.932409)
 
 
