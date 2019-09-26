@@ -60,12 +60,16 @@ optimer_identitet <- function(x_0 = ab) {
   a_k <- 2
   itt <- 0
   steps <- c()
+  plot(dist ~ speed, cars)
   while (norm(t(d_f(x_k))) > 1e-5) {
     itt <- 1 + itt
     p_k <- -d_f(x_k)
     a_k <- backtrack(a_k, rho = 0.5, c = 0.001, f, d_f, x_k)
     x_k <- x_k + a_k * t(p_k)
     steps[itt] <- a_k
+    if (itt %% 500 == 0) {
+      abline(x_k)
+    }
     if (itt == 100000) {
       break
     }
@@ -106,9 +110,58 @@ optim(ab, f, hessian = TRUE)
 
 abline(-17.57909, 3.932409)
 
+phi_lig_nul <- function(x_k) {
+  1/n * sum((x_k[2] * cars$speed + x_k[1] - cars$dist) /(d_f(x_k)[2] * cars$speed + d_f(x_k)[1]))
+}
+
+# optimer_identitet_phi <- function(x_0 = ab) {
+#   x_k <- x_0
+#   a_k <- 2
+#   itt <- 0
+#   steps <- c()
+#   plot(dist ~ speed, cars)
+#   while (norm(t(d_f(x_k))) > 1e-5) {
+#     itt <- 1 + itt
+#     p_k <- -d_f(x_k)
+#     a_k <- phi_lig_nul(x_k)
+#     x_k <- x_k + a_k * t(p_k)
+#     steps[itt] <- a_k
+#     if (itt %% 1 == 0) {
+#       abline(x_k)
+#     }
+#     if (itt == 100000) {
+#       break
+#     }
+#   }
+#   cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
+# }
+# optimer_identitet_phi()
 
 
-
+optimer_newton_phi <- function(x_0 = ab) {
+  x_k <- x_0
+  a_k <- 2
+  itt <- 0
+  steps <- c()
+  x_plot <- c()
+  f_plot <- c()
+  plot(dist ~ speed, cars)
+  while (norm(t(d_f(x_k))) > 1e-5) {
+    itt <- 1 + itt
+    p_k <- solve(dd_f(x_k), -d_f(x_k))
+    a_k <- phi_lig_nul(x_k)
+    x_k <- x_k + a_k * t(p_k)
+    if (itt %% 50 == 0) {
+      abline(x_k)
+    }
+    steps[itt] <- a_k
+    if (itt == 100000) {
+      break
+    }
+  }
+  cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
+}
+optimer_newton_phi()
 ```
 
 
