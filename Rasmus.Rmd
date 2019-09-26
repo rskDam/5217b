@@ -12,7 +12,7 @@ data("cars")
 ```
 
 
-#Opg. 1
+## Opg. 1
 
 Gradienten er
 
@@ -44,12 +44,14 @@ dd_f <- function(ab) {
   hessian(f,ab)
 }
 
-backtrack <- function(a_bar = 3, rho = 0.3, c = 0.2, func = f, Dfunc = d_f, x_k = ab) {
+backtrack <- function(a_bar = 3, rho = 0.3, c = 0.2, c_2 = 0.4, func = f, Dfunc = d_f, x_k = ab) {
   a <- a_bar
   itt <- 0
   while ( (func(x_k + a * (-Dfunc(x_k)) ) ) > (func(x_k) + c * a * t(Dfunc(x_k)) %*% (-Dfunc(x_k))) ) {
+  # while (t(Dfunc(x_k + a * -Dfunc(x_k))) %*% -Dfunc(x_k) < c_2 * t(Dfunc(x_k)) %*% -Dfunc(x_k) ) {
     itt <- itt + 1
     a <- rho * a
+  # }
   }
   a
 }
