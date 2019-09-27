@@ -23,7 +23,7 @@ $\begin{bmatrix} \frac{1}{n} \sum_i^n 2(a + bs_i - d_i) \\ \frac{1}{n} \sum_i^n 
 
 
 ```{r Opg. 1}
-ab <- c(1,1)
+ab <- c(-20,3)
 n <- 50
 ms <- function(ab) {
   ab[1] + ab[2] * cars$speed
@@ -88,7 +88,7 @@ optimer_identitet <- function(x_0 = ab) {
 
 ```{r Opg. 1}
 #newton
-optimer_newton <- function(x_0 = ab) {
+optimer_newton <- function(x_0 = ab, output = TRUE) {
   x_k <- x_0
   a_k <- 2
   itt <- 0
@@ -111,11 +111,14 @@ optimer_newton <- function(x_0 = ab) {
       break
     }
   }
+  if (output == TRUE) {
+    cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
+  }
+  else
   cbind(x_plot, y_plot)
-  # cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
 }
-xy <- optimer_newton()
-
+xy <- optimer_newton(output = FALSE)
+optimer_newton(output = TRUE)
 
 ```
 
@@ -134,17 +137,14 @@ f_plot <- function(x,y) {
 }
 
 
-x <- seq(-25,-5,length = 5000)
-y <- seq(2,5, length = 5000)
+fkts_vaerdier <- apply(xy, 1, f)
+x <- seq(-20,-17,length = 159)
+y <- seq(2.9,4.2, length = 159)
 z <- outer(x, y, FUN = Vectorize("f_plot"))
 plot_ly(x = x, y = y, z = ~z) %>% add_surface()  %>% 
   add_trace(x = xy[,1], y = xy[,2], z = fkts_vaerdier)
 
-xy <- cbind(x,y)
-fkts_vaerdier <- apply(xy, 1, f)
 
-f_plot(-17.582847, 3.932929)
-f(c(-17.582847, 3.932929))
 ```
 
 
@@ -158,27 +158,27 @@ phi_lig_nul <- function(x_k) {
   1/n * sum((x_k[2] * cars$speed + x_k[1] - cars$dist) /(d_f(x_k)[2] * cars$speed + d_f(x_k)[1]))
 }
 
-# optimer_identitet_phi <- function(x_0 = ab) {
-#   x_k <- x_0
-#   a_k <- 2
-#   itt <- 0
-#   steps <- c()
-#   plot(dist ~ speed, cars)
-#   while (norm(t(d_f(x_k))) > 1e-5) {
-#     itt <- 1 + itt
-#     p_k <- -d_f(x_k)
-#     a_k <- phi_lig_nul(x_k)
-#     x_k <- x_k + a_k * t(p_k)
-#     steps[itt] <- a_k
-#     if (itt %% 1 == 0) {
-#       abline(x_k)
-#     }
-#     if (itt == 100000) {
-#       break
-#     }
-#   }
-#   cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
-# }
+optimer_identitet_phi <- function(x_0 = ab) {
+  x_k <- x_0
+  a_k <- 2
+  itt <- 0
+  steps <- c()
+  plot(dist ~ speed, cars)
+  while (norm(t(d_f(x_k))) > 1e-5) {
+    itt <- 1 + itt
+    p_k <- -d_f(x_k)
+    a_k <- phi_lig_nul(x_k)
+    x_k <- x_k + a_k * t(p_k)
+    steps[itt] <- a_k
+    if (itt %% 1 == 0) {
+      abline(x_k)
+    }
+    if (itt == 100000) {
+      break
+    }
+  }
+  cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
+}
 # optimer_identitet_phi()
 
 
@@ -205,7 +205,7 @@ optimer_newton_phi <- function(x_0 = ab) {
   }
   cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
 }
-# optimer_newton_phi()
+optimer_newton_phi()
 
 
 
