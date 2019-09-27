@@ -117,7 +117,6 @@ test_x <- seq(-25, 0, by = 0.01)
 test_y <- seq(1, 5, by = 0.01 * 4/25)
 test_funk <- apply(cbind(test_x, test_y), 1, f)
 
-
 plot_ly(x = test_x, y = test_y, z = test_funk, type = "scatter3d", mode = "markers")
 
 summary(lm(cars$dist ~ cars$speed))
