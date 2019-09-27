@@ -56,7 +56,10 @@ backtrack <- function(a_bar = 3, rho = 0.3, c = 0.2, func = f, Dfunc = d_f, x_k 
   }
   a
 }
+```
 
+
+```{r Opg. 1}
 #steepest descent
 optimer_identitet <- function(x_0 = ab) {
   x_k <- x_0
@@ -79,9 +82,11 @@ optimer_identitet <- function(x_0 = ab) {
   }
   cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
 }
-optimer_identitet()
+# optimer_identitet()
+```
 
 
+```{r Opg. 1}
 #newton
 optimer_newton <- function(x_0 = ab) {
   x_k <- x_0
@@ -106,19 +111,44 @@ optimer_newton <- function(x_0 = ab) {
       break
     }
   }
-  cbind(x_plot,y_plot)
+  cbind(x_plot, y_plot)
   # cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
 }
-xy_akse <- optimer_newton()
-funktions_akse <- apply(xy_akse, 1, f)
-plot_ly(x = xy_akse[,1], y = xy_akse[,2], z = funktions_akse, type = "scatter3d", mode = "markers")
+xy <- optimer_newton()
 
-test_x <- seq(-25, 0, by = 0.01)
-test_y <- seq(1, 5, by = 0.01 * 4/25)
-test_funk <- apply(cbind(test_x, test_y), 1, f)
 
-plot_ly(x = test_x, y = test_y, z = test_funk, type = "scatter3d", mode = "markers")
+```
 
+
+```{r forsoeg på plot}
+ms_plot <- function(x,y) {
+  x + y * cars$speed
+}
+
+f_i_plot <- function(x,y) {
+  (ms_plot(x,y) - cars$dist)^2
+}
+
+f_plot <- function(x,y) {
+  1/n * sum(f_i_plot(x,y))
+}
+
+
+x <- seq(-25,-5,length = 5000)
+y <- seq(2,5, length = 5000)
+z <- outer(x, y, FUN = Vectorize("f_plot"))
+plot_ly(x = x, y = y, z = ~z) %>% add_surface()  %>% 
+  add_trace(x = xy[,1], y = xy[,2], z = fkts_vaerdier)
+
+xy <- cbind(x,y)
+fkts_vaerdier <- apply(xy, 1, f)
+
+f_plot(-17.582847, 3.932929)
+f(c(-17.582847, 3.932929))
+```
+
+
+```{r Opg. 1}
 summary(lm(cars$dist ~ cars$speed))
 
 optim(ab, f, hessian = TRUE)
@@ -175,7 +205,7 @@ optimer_newton_phi <- function(x_0 = ab) {
   }
   cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
 }
-optimer_newton_phi()
+# optimer_newton_phi()
 
 
 
