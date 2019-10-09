@@ -66,26 +66,24 @@ grad.ab <- function(ab) c(1/length(cars$speed) * sum(2*(ab[1] + ab[2]* cars$spee
 
 2. Implement gradient descent and then use it to find the best straight line.
 ```{r}
-ab_0 <- c(1,1)
-alpha <- 0.001
-ab <- ab_0
-itt <- 0
-while (norm(t(grad.ab(ab))) > 0.001){
-  itt <- itt + 1
-  p_k <- -grad.ab(ab)
-  ab <- ab + alpha*p_k
+Fast.alp.optim <- function(x_0,al){
+  x_0 <- c(1,1)
+  ab <- ab_0
+  itt <- 0
+  while (norm(t(grad.ab(ab))) > 0.001){
+    itt <- itt + 1
+    p_k <- -grad.ab(ab)
+    ab <- ab + al*p_k
+  }
+  cat("x*=",ab, ", antal itterationer =",itt)
 }
-ab
+Fast.alp.optim(c(1,1),0.001)
 ```
 Forløblig implemtering, dobbelttjekkes med optim-funktionen i R
 ```{r}
 optim(c(1,1),f)
 ```
-Implementeringen giver cirka de korrekte værdier, dog er der en vis usikkerhed, som kan skyldes tollerencen ved while conditionen, eller skridtlængden, som i forgående script er valgt til 
-```{r}
-alpha
-```
-Denne bliver omdefineret senere.
+Implementeringen giver cirka de korrekte værdier, dog er der en vis usikkerhed, som kan skyldes tollerencen ved while conditionen, eller skridtlængden, som i forgående script er valgt til en fast værdi. Denne bliver omdefineret senere.
 
     * What is meant by *the best* straight line in relation to the objective function above?
 Det er den rette linje, som minimerer residualerne mest.
@@ -105,29 +103,30 @@ Anden metode er ved hjælp af backtracking, eller sufficient decrease condition,
 $$f(x_k+\alpha p_k) \leq f(x_k) + c_1 \alpha_k \nabla f_k^T p_k$$
 overstående implementers
 ```{r}
-p_k <- -grad.ab(ab)
-Bck.trk <- function(fun,ab,alpha.bar,c_1,rho){
-  alpha <- alpha.bar
-  while (abs(fun(ab + alpha*-grad.ab(ab)))>fun(ab)+c_1*alpha*t(grad.ab(ab))%*%-grad.ab(ab)) {
-    alpha <- rho*alpha
+  p_k <- -grad.ab(ab)
+  Bck.trk <- function(fun,ab,alpha.bar,c_1,rho){
+    alpha <- alpha.bar
+    while (abs(fun(ab + alpha*-grad.ab(ab)))>fun(ab)+c_1*alpha*t(grad.ab(ab))%*%-grad.ab(ab)) {
+      alpha <- rho*alpha
+    }
+    alpha
   }
-  alpha
-}
 Bck.trk(f,c(1,1),5,0.01,0.5)
 ```
 Med funktionen Bck.trk er det nu muligt at bestemme, for hvilket $\alpha$ funktionen giver en mindre værdi. Det udregnede $\alpha$ er relativt småt, hvilket virker plausibelt, da det før var tilfældet at der kun blev fundet et minimum for små alpha. Backtracking implementeres nu i den originale implementering af gradient decent.
 ```{r}
-ab_0 <- c(1,1)
-alpha <- 1
-ab <- ab_0
-itt.m.bk <- 0
-while (norm(t(grad.ab(ab))) > 0.001){
-  itt.m.bk <- itt.m.bk + 1
-  alpha <- Bck.trk(f,ab,alpha,0.001,0.5)
-  p_k <- -grad.ab(ab)
-  ab <- ab + alpha*p_k
+optimering.m.backtrack <- function(ab,al){
+  ab_0 <- ab
+  itt.m.bk <- 0
+  while (norm(t(grad.ab(ab))) > 0.001){
+    itt.m.bk <- itt.m.bk + 1
+    alph <- Bck.trk(f,ab,al,0.001,0.5)
+    p_k <- -grad.ab(ab)
+    ab <- ab + alph*p_k
+  }
+  cat("x*=",ab,", antal itterationer =",itt.m.bk)
 }
-ab
+optimering.m.backtrack(c(1,2),1)
 ```
 For at opfylde begge wolfe conditions skal sufficient decrease condition (SDC) benyttes, sammen med curvature condition (CC), hvor følgende ulighed skal være overholdt:
 $$-p_k^T\nabla f(x_k + \alpha p_k) \leq -c_2 p_k^T \nabla f_k,$$
@@ -183,10 +182,10 @@ zoom <- function(a_lo, a_hi, x_k, c1, c2) {
 
 		done <- (k > k_max)
 	}
-
+	
 	return(a_k)
 }
-zoom(1,3,c(1,1),1e-4,4e-1)
+zoom(0.0001,1,c(1,2),0.001,0.9)
 
 ```
 Da zoom funktionen nu er implementeret, kan \textit{Algoritme 3.5} nu implementeres
@@ -236,12 +235,27 @@ alpha <- function(a_0, x_k, c1, c2) {
 
 	return(a_k)
 }
-alpha(1,c(1,1),0.5,0.5)
+alpha(0.1,c(-15,2),0.001,0.9)
 ```
-
+Da algoritme 3.5 er implementeret, er det nu muligt at benytte en linesearch, med strong Wolfe conditions, og dervded sikre global konvergens.
+```{r}
+Strong.Wolfe <- function(ab){
+  str.it <- 0
+  while (norm(t(grad.ab(ab))) > 0.001){
+    str.it <- str.it +1
+    p_k <- -grad.ab(ab)
+    alp <- alpha(0.1,ab,0.001,0.9)
+    ab <- ab + alp*p_k
+  }
+  cat("x*=",ab,", f(x*)=",f(ab),", antal operationer=",str.it)
+}
+Strong.Wolfe(c(-20,3))
+```
 
 3. Try with different ways to choose step sizes and illustrate it (including plotting the objective function and the iterates, $\{x_k\}_k$). 
     * (Technically, it may be easier to have an algorithm for each way of choosing step size.)
+
+
 4. Show some iterates in a plot showing the data (e.g. `plot(dist ~ speed, cars)`).
 
 Account for theoretical properties of the gradient descent.
