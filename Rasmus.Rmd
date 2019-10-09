@@ -9,6 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(numDeriv)
 library(plotly)
+library(microbenchmark)
 data("cars")
 ```
 
@@ -56,18 +57,119 @@ backtrack <- function(a_bar = 3, rho = 0.3, c = 0.2, func = f, Dfunc = d_f, x_k 
   }
   a
 }
+
 ```
+
+
+
+```{r Zoom funktion}
+#params
+c1 <- 0.001
+c2 <- 0.9
+a_lo <- 0.001
+a_hi <- 0.08
+a_0 <- 0.1
+# Implementation of Algorithm 3.6
+# (Zoom)
+zoom <- function(x_k, a_lo, a_hi, c1, c2, func = f, g = d_f) {
+	f_k <- func(x_k)
+	g_k <- g(x_k)
+	p_k <- -g_k
+	
+	k <- 0
+	k_max <- 1000   # Maximum number of iterations.
+	done <- FALSE
+	
+	while(!done) {
+		k <- k + 1
+		phi_lo <- func(x_k + a_lo*p_k)
+
+		a_k <- 0.5*(a_lo + a_hi)
+		phi_k <- func(x_k + a_k*p_k)
+		dphi_k_0 <- g_k%*%p_k
+		l_k <- f_k + c1*a_k*dphi_k_0
+		
+		if ((phi_k > l_k) | (phi_k >= phi_lo)) {
+			a_hi <- a_k
+		} else {
+			dphi_k <- p_k %*% g(x_k + a_k*p_k)
+			
+			if (abs(dphi_k) <= -c2*dphi_k_0) {
+			  return(a_k)
+			}
+			
+			if (dphi_k*(a_hi - a_lo) >= 0) {
+				a_hi <- a_lo
+			}
+			
+			a_lo <- a_k
+		}
+		
+		done <- (k > k_max)
+	}
+	
+	return(a_k)
+}
+
+alpha <- function(a_0, x_k, c1, c2, func = f, g = d_f) {
+  a_max <- 4*a_0 # Maximum step length. Can also be given as argument.
+  f_k <- func(x_k)
+  phi_k <- f_k
+  a_1 <- a_0
+  a0 <- 0
+  a_k <- a_1
+  a_k_old <- a0
+  
+  k <- 0
+  k_max <- 1000   # Maximum number of iterations.
+  done <- FALSE
+  while(!done) {
+    k <- k + 1
+    f_k <- func(x_k)
+    g_k <- g(x_k)
+    p_k <- -g_k
+    
+    phi_k_old <- phi_k
+    phi_k <- func(x_k + a_k*p_k)
+    dphi_k_0 <- g_k%*%p_k
+    l_k <- f_k + c1*a_k*dphi_k_0
+    
+    if ((phi_k > l_k) || ((k > 1) && (phi_k >= phi_k_old))) {
+      return(zoom(x_k, a_k_old, a_k, c1, c2))
+    }
+    
+    dphi_k <- p_k %*% g(x_k + a_k*p_k)
+    
+    if (abs(dphi_k) <= -c2*dphi_k_0) {
+      return(a_k)
+    }
+    
+    if (dphi_k >= 0) {
+      return(zoom(a_k, a_k_old, x_k, c1, c2))
+    }
+    
+    a_k_old <- a_k
+    a_k <- rho*a_k + (1 - rho)*a_max # e.g. rho <- 0.5
+    done <- (k > k_max)
+  }
+  
+  return(a_k)
+}
+
+
+```
+
 
 
 ```{r Opg. 1, 2}
 #steepest descent
-optimer_identitet <- function(x_0 = ab) {
+optimer_identitet_backtrack <- function(x_0 = ab) {
   x_k <- x_0
   a_k <- 2
   itt <- 0
   steps <- c()
   plot(dist ~ speed, cars)
-  while (norm(t(d_f(x_k))) > 1e-5) {
+  while (norm(t(d_f(x_k)), type = "2") > 1e-5) {
     itt <- 1 + itt
     p_k <- -d_f(x_k)
     a_k <- backtrack(a_k, rho = 0.5, c = 0.001, f, d_f, x_k)
@@ -82,13 +184,40 @@ optimer_identitet <- function(x_0 = ab) {
   }
   cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
 }
-# optimer_identitet()
+# optimer_identitet_backtrack()
+```
+
+```{r "optimer identitet zoom"}
+
+
+optimer_identitet_zoom <- function(x_0 = ab) {
+  x_k <- x_0
+  a_k <- 2
+  itt <- 0
+  steps <- c()
+  plot(dist ~ speed, cars)
+  while (norm(t(d_f(x_k)), type = "2") > 1e-5) {
+    itt <- 1 + itt
+    p_k <- -d_f(x_k)
+    a_k <- alpha(a_0, x_k, c1,c2)
+    x_k <- x_k + a_k * t(p_k)
+    steps[itt] <- a_k
+    if (itt %% 500 == 0) {
+      abline(x_k)
+    }
+    if (itt == 100000) {
+      break
+    }
+  }
+  cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
+}
+# optimer_identitet_zoom()
 ```
 
 
 ```{r Opg. 1, 3}
 #newton
-optimer_newton <- function(x_0 = ab, output = TRUE) {
+optimer_newton_backtrack <- function(x_0 = ab, output = TRUE) {
   x_k <- x_0
   a_k <- 2
   itt <- 0
@@ -96,7 +225,7 @@ optimer_newton <- function(x_0 = ab, output = TRUE) {
   x_plot <- c()
   y_plot <- c()
   plot(dist ~ speed, cars)
-  while (norm(t(d_f(x_k))) > 1e-4) {
+  while (norm(t(d_f(x_k)), type = "2") > 1e-4) {
     itt <- 1 + itt
     p_k <- solve(dd_f(x_k), -d_f(x_k))
     a_k <- backtrack(a_k, rho = 0.5, c = 0.01, f, d_f, x_k)
@@ -117,8 +246,55 @@ optimer_newton <- function(x_0 = ab, output = TRUE) {
   else
   cbind(x_plot, y_plot)
 }
-xy <- optimer_newton(output = FALSE)
-optimer_newton(output = TRUE)
+xy_backtrack <- optimer_newton_backtrack(output = FALSE)
+optimer_newton_backtrack(output = TRUE)
+
+```
+
+
+```{r "optimer Newton, zoom"}
+
+
+#newton
+optimer_newton_zoom <- function(x_0 = ab, output = TRUE) {
+  x_k <- x_0
+  a_k <- 2
+  itt <- 0
+  steps <- c()
+  x_plot <- c()
+  y_plot <- c()
+  plot(dist ~ speed, cars)
+  while (norm(t(d_f(x_k)), type = "2") > 1e-4) {
+    itt <- 1 + itt
+    p_k <- solve(dd_f(x_k), -d_f(x_k))
+    a_k <- alpha(a_0, x_k, c1,c2)
+    x_k <- x_k + a_k * t(p_k)
+    if (itt %% 50 == 0) {
+      abline(x_k)
+      x_plot[itt/50] <- x_k[1]
+      y_plot[itt/50] <- x_k[2]
+    }
+    steps[itt] <- a_k
+    if (itt == 100000) {
+      break
+    }
+  }
+  if (output == TRUE) {
+    cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
+  }
+  else
+  cbind(x_plot, y_plot)
+}
+xy_zoom <- optimer_newton_zoom(output = FALSE)
+optimer_newton_zoom(output = TRUE)
+
+
+```
+
+
+```{r "micro benchmark af alle funktioner"}
+
+benchmark_result <- microbenchmark(optimer_identitet_backtrack(), optimer_identitet_zoom(), optimer_newton_backtrack(), optimer_newton_zoom(), times = 1)
 
 ```
 
@@ -137,11 +313,11 @@ f_plot <- function(x,y) {
 }
 
 
-fkts_vaerdier <- apply(xy, 1, f)
+fkts_vaerdier <- apply(xy_backtrack, 1, f)
 # x <- seq(-20,-17,length = 200)
 # y <- seq(2.9,4.2, length = 200)
-x <- xy[,1]
-y <- xy[,2]
+x <- xy_backtrack[,1]
+y <- xy_backtrack[,2]
 z <- outer(x, y, FUN = Vectorize("f_plot"))
 plot_ly(x = x, y = y, z = ~z) %>% add_surface()  %>% 
   add_trace(x = xy[,1], y = xy[,2], z = fkts_vaerdier)
@@ -166,7 +342,7 @@ optimer_identitet_phi <- function(x_0 = ab) {
   itt <- 0
   steps <- c()
   plot(dist ~ speed, cars)
-  while (norm(t(d_f(x_k))) > 1e-5) {
+  while (norm(t(d_f(x_k)), type = "2") > 1e-5) {
     itt <- 1 + itt
     p_k <- -d_f(x_k)
     a_k <- phi_lig_nul(x_k)
@@ -192,7 +368,7 @@ optimer_newton_phi <- function(x_0 = ab) {
   x_plot <- c()
   f_plot <- c()
   plot(dist ~ speed, cars)
-  while (norm(t(d_f(x_k))) > 1e-5) {
+  while (norm(t(d_f(x_k)), type = "2") > 1e-5) {
     itt <- 1 + itt
     p_k <- solve(dd_f(x_k), -d_f(x_k))
     a_k <- phi_lig_nul(x_k)
