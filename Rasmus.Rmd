@@ -1,6 +1,8 @@
 ---
 title: "Rasmus"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -184,10 +186,10 @@ optimer_identitet_backtrack <- function(x_0 = ab) {
   }
   cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
 }
-# optimer_identitet_backtrack()
+optimer_identitet_backtrack()
 ```
 
-```{r "optimer identitet zoom"}
+```{r optimer identitet zoom}
 
 
 optimer_identitet_zoom <- function(x_0 = ab) {
@@ -211,7 +213,7 @@ optimer_identitet_zoom <- function(x_0 = ab) {
   }
   cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
 }
-# optimer_identitet_zoom()
+optimer_identitet_zoom()
 ```
 
 
@@ -252,7 +254,7 @@ optimer_newton_backtrack(output = TRUE)
 ```
 
 
-```{r "optimer Newton, zoom"}
+```{r optimer Newton, zoom}
 
 
 #newton
@@ -292,9 +294,10 @@ optimer_newton_zoom(output = TRUE)
 ```
 
 
-```{r "micro benchmark af alle funktioner"}
+```{r micro benchmark af alle funktioner}
 
 benchmark_result <- microbenchmark(optimer_identitet_backtrack(), optimer_identitet_zoom(), optimer_newton_backtrack(), optimer_newton_zoom(), times = 1)
+benchmark_result
 
 ```
 
@@ -312,21 +315,25 @@ f_plot <- function(x,y) {
   1/n * sum(f_i_plot(x,y))
 }
 
-
-fkts_vaerdier <- apply(xy_backtrack, 1, f)
-# x <- seq(-20,-17,length = 200)
-# y <- seq(2.9,4.2, length = 200)
+fkts_vaerdier_backtrack <- apply(xy_backtrack, 1, f)
 x <- xy_backtrack[,1]
 y <- xy_backtrack[,2]
 z <- outer(x, y, FUN = Vectorize("f_plot"))
+plot_ly(x = x, y = y, z = ~ z) %>% add_surface()  %>% 
+  add_trace(x = xy_backtrack[,1], y = xy_backtrack[,2], z = fkts_vaerdier_backtrack)
+
+fkts_vaerdier_zoom <- apply(xy_zoom, 1, f)
+x <- xy_zoom[,1]
+y <- xy_zoom[,2]
+z <- outer(x, y, FUN = Vectorize("f_plot"))
 plot_ly(x = x, y = y, z = ~z) %>% add_surface()  %>% 
-  add_trace(x = xy[,1], y = xy[,2], z = fkts_vaerdier)
+  add_trace(x = xy_zoom[,1], y = xy_zoom[,2], z = fkts_vaerdier_zoom)
 
 
 ```
 
 
-```{r Opg. 1, 4}
+```{r Opg. 1, 4 forsoeg med phi, ikke korrekt}
 summary(lm(cars$dist ~ cars$speed))
 
 optim(ab, f, hessian = TRUE)
@@ -383,7 +390,7 @@ optimer_newton_phi <- function(x_0 = ab) {
   }
   cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
 }
-optimer_newton_phi()
+# optimer_newton_phi()
 
 
 
