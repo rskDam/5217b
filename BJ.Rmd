@@ -75,22 +75,170 @@ while (norm(t(grad.ab(ab))) > 0.001){
   p_k <- -grad.ab(ab)
   ab <- ab + alpha*p_k
 }
+ab
 ```
 Forløblig implemtering, dobbelttjekkes med optim-funktionen i R
 ```{r}
 optim(c(1,1),f)
 ```
-Implementeringen giver cirka de korrekte værdier - usikkerheden kan skyldesvirker kun for små $\alpha$, hvorfor det ville være en fordel at implemtere andre måder at vælge alpha på. Med den nuværende skridtlængde benyttes følgende antal itterationer:
+Implementeringen giver cirka de korrekte værdier, dog er der en vis usikkerhed, som kan skyldes tollerencen ved while conditionen, eller skridtlængden, som i forgående script er valgt til 
 ```{r}
-itt
+alpha
 ```
-Dette forsøger jeg at forbedre:
+Denne bliver omdefineret senere.
 
     * What is meant by *the best* straight line in relation to the objective function above?
 Det er den rette linje, som minimerer residualerne mest.
 
     * Discuss different ways to determine the step sizes.
-Første metode at bestemme 
+Første metode at bestemme skridtlængden med, er global minimizer. Her skal funktionen $\phi(\alpha)=f(x_k + \alpha p_k)$ optimeres. Dette kan gøres ved at aflede mht. $\alpha$.
+Først skrives funktionen $f$, så det er nemmere at overskue, hvorefter det kan afledes.
+$$\frac{1}{n}\sum^n_{i=1}f_i(a-\alpha \nabla_a f, b-\alpha \nabla_b f)^2$$
+Den afledte udregnes, og funktionen sættes lig $0$, dette giver den optimale værdi for alpha, hvor 
+$$\alpha_i=\frac{bs_i+a-d_i}{\nabla_bf \times s_i + \nabla_a f}$$
+disse værdier skal altså summes, hvilket giver den optimale værdi for det en givet $(a,b)$ værdi. Der defineres en funktion som kan udregne alpha
+
+%$$\frac{\partial}{\partial \alpha}\phi(\alpha)=$$
+
+
+Anden metode er ved hjælp af backtracking, eller sufficient decrease condition, her benyttes formlen:
+$$f(x_k+\alpha p_k) \leq f(x_k) + c_1 \alpha_k \nabla f_k^T p_k$$
+overstående implementers
+```{r}
+p_k <- -grad.ab(ab)
+Bck.trk <- function(fun,ab,alpha.bar,c_1,rho){
+  alpha <- alpha.bar
+  while (abs(fun(ab + alpha*-grad.ab(ab)))>fun(ab)+c_1*alpha*t(grad.ab(ab))%*%-grad.ab(ab)) {
+    alpha <- rho*alpha
+  }
+  alpha
+}
+Bck.trk(f,c(1,1),5,0.01,0.5)
+```
+Med funktionen Bck.trk er det nu muligt at bestemme, for hvilket $\alpha$ funktionen giver en mindre værdi. Det udregnede $\alpha$ er relativt småt, hvilket virker plausibelt, da det før var tilfældet at der kun blev fundet et minimum for små alpha. Backtracking implementeres nu i den originale implementering af gradient decent.
+```{r}
+ab_0 <- c(1,1)
+alpha <- 1
+ab <- ab_0
+itt.m.bk <- 0
+while (norm(t(grad.ab(ab))) > 0.001){
+  itt.m.bk <- itt.m.bk + 1
+  alpha <- Bck.trk(f,ab,alpha,0.001,0.5)
+  p_k <- -grad.ab(ab)
+  ab <- ab + alpha*p_k
+}
+ab
+```
+For at opfylde begge wolfe conditions skal sufficient decrease condition (SDC) benyttes, sammen med curvature condition (CC), hvor følgende ulighed skal være overholdt:
+$$-p_k^T\nabla f(x_k + \alpha p_k) \leq -c_2 p_k^T \nabla f_k,$$
+hvor $0<c_1<c_2<1$. Dette implementeres også som en funktion;
+```{r}
+wolf.cc <- function(fun, ab, alpha.bar_2, c_2,rho){
+  while (t(-grad.ab(ab))%*%grad.ab(ab+alpha*-grad.ab(ab)) > -c_2*t(-grad.ab(ab))%*%grad.ab(ab)) 
+    {
+    alpha <- rho*alpha
+  }
+  alpha
+}
+wolf.cc(f,c(1,1),1,0.5,0.5)
+```
+Da både SDC og CC kriterierne nu er implementeret, forsøger jeg at lave en algoritme, hvor begge kriterier er opfyldt. 
+
+Følgende algoritme er fra lektion 1.3, og er refferet til som \textit{Algoritme 3.5}. I denne algoritme benyttes \textit{Algoritme 3.6}, som er den såkaldte zoom algoritme. Denne implementeres først, hvorefter strong Wolfe kan implementeres.
+```{r}
+g <- grad.ab
+zoom <- function(a_lo, a_hi, x_k, c1, c2) {
+	f_k <- f(x_k)
+	g_k <- g(x_k)
+	p_k <- -g_k
+
+	k <- 0
+	k_max <- 1000   # Maximum number of iterations.
+	done <- FALSE
+
+	while(!done) {
+		k <- k + 1
+		phi_lo <- f(x_k + a_lo*p_k)
+
+		a_k <- 0.5*(a_lo + a_hi)
+		phi_k <- f(x_k + a_k*p_k)
+		dphi_k_0 <- g_k%*%p_k
+		l_k <- f_k + c1*a_k*dphi_k_0
+
+		if ((phi_k > l_k) || (phi_k >= phi_lo)) {
+			a_hi <- a_k
+		} else {
+			dphi_k <- p_k %*% g(x_k + a_k*p_k)
+
+			if (abs(dphi_k) <= -c2*dphi_k_0) {
+			  return(a_k)
+			}
+
+			if (dphi_k*(a_hi - a_lo) >= 0) {
+				a_hi <- a_lo
+			}
+
+			a_lo <- a_k
+		}
+
+		done <- (k > k_max)
+	}
+
+	return(a_k)
+}
+zoom(1,3,c(1,1),1e-4,4e-1)
+
+```
+Da zoom funktionen nu er implementeret, kan \textit{Algoritme 3.5} nu implementeres
+
+```{r}
+alpha <- function(a_0, x_k, c1, c2) {
+	a_max <- 4*a_0 # Maximum step length. Can also be given as argument.
+	f_k <- f(x_k)
+	phi_k <- f_k
+	a_1 <- a_0
+	a0 <- 0
+	a_k <- a_1
+	a_k_old <- a0
+
+	k <- 0
+	k_max <- 1000   # Maximum number of iterations.
+	done <- FALSE
+	while(!done) {
+		k <- k + 1
+		f_k <- f(x_k)
+		g_k <- g(x_k)
+		p_k <- -g_k
+
+		phi_k_old <- phi_k
+		phi_k <- f(x_k + a_k*p_k)
+		dphi_k_0 <- g_k%*%p_k
+		l_k <- f_k + c1*a_k*dphi_k_0
+
+		if ((phi_k > l_k) || ((k > 1) && (phi_k >= phi_k_old))) {
+		  return(zoom(a_k_old, a_k, x_k, c1, c2))
+		}
+
+		dphi_k <- p_k %*% g(x_k + a_k*p_k)
+
+		if (abs(dphi_k) <= -c2*dphi_k_0) {
+		  return(a_k)
+		}
+
+		if (dphi_k >= 0) {
+		  return(zoom(a_k, a_k_old, x_k, c1, c2))
+		}
+
+		a_k_old <- a_k
+		a_k <- rho*a_k + (1 - rho)*a_max # e.g. rho <- 0.5
+		done <- (k > k_max)
+	}
+
+	return(a_k)
+}
+alpha(1,c(1,1),0.5,0.5)
+```
+
 
 3. Try with different ways to choose step sizes and illustrate it (including plotting the objective function and the iterates, $\{x_k\}_k$). 
     * (Technically, it may be easier to have an algorithm for each way of choosing step size.)
