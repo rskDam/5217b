@@ -1,0 +1,38 @@
+---
+title: "Miniprojekt5_disp"
+output:
+  pdf_document: default
+  html_notebook: default
+editor_options:
+  chunk_output_type: inline
+---
+
+
+## Linear programering 
+
+\begin{itemize}
+  \item Kanonisk form:
+  \begin{itemize}
+    \item max $c_1x_1+\cdots+c_nx_n=c^Tx$
+    \item Under betingerlserne.
+    \item $\begin{bmatrix} a_{11}x_1+\cdots+a_{1n}x_n \leq b_1 \\ \vdots \\ a_{m1}x_1+\cdots + a_{mn}x_n \leq b_m \end{bmatrix}$ eller $Ax \leq b$.
+    \item $x \geq 0$
+    \item $x_i$ er varible. $c_i$ er koefficenterne. Som giver kriteriefunktionen
+    \item $z=c_1x_1+\cdots + c_nx_n$ som skal maximeres
+  \end{itemize}
+  \item Standart form:
+  \begin{itemize}
+    \item max $c_1x_1+\cdots+c_nx_n=c^Tx$
+    \item Under betingerlserne.
+    \item $\begin{bmatrix} a_{11}x_1+\cdots+a_{1n}x_n = b_1 \\ \vdots \\ a_{m1}x_1+\cdots + a_{mn}x_n = b_m \end{bmatrix}$ eller $Ax = b$.
+    \item $x \geq 0$
+  \end{itemize}
+  \item Et lineart programerings problem på kanonisk form kan bringes på standard form, ved at nye variable.
+  \item $x_{n+1},\ldots,  x_{m+n}$, en for hver bibetingelse. 
+  \item max $c_1x_1+\cdots+c_nx_n=\bar{c}^T\bar{x}$
+  \item Under betingerlserne.
+  \item $\begin{bmatrix} a_{11}x_1+\cdots+a_{1n}x_n+x_{n+1} \leq b_1 \\ \vdots \\ a_{m1}x_1+\cdots + a_{mn}x_n+x_{n+m} \leq b_m \end{bmatrix}$ eller $\bar{A}\bar{x} \leq b$.
+  \item $\bar{x} \geq 0$
+  \item hvor $\bar{A}=\begin{bmatrix} A, I \end{bmatrix}$
+  \item $\bar{c}=\begin{bmatrix} c \\ 0 \end{bmatrix}$
+\end{itemize}

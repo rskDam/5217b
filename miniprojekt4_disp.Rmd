@@ -1,0 +1,360 @@
+---
+title: "Miniprojekt4_disp"
+author: "Gruppe 5.217"
+date: "17/1/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+
+# Least Squares problems
+
+\begin{itemize}
+  \item Lad $\phi(x,t)$ være en model. 
+  \item Lad observation med støj være $y_j$.
+  \item Objekt funktion: $f(x)=\frac{1}{2}\sum_{j=1}^m (r_j(x))^2=\frac{1}{2} \sum_{j=1}^m r_j(x)^2$
+  \item n: antal coefficient(parametre) 
+  \item m: antal observationer 
+  \item Residualer:
+  \begin{itemize}
+    \item r: residualer, $r_j(x)=\phi(x,t_j)-y_j, \quad r_j: \mathbb{R}^n \rightarrow \mathbb{R}$
+    \item Antagelse: $m\geq n$
+    \item Residuale vektor $r: \mathbb{R}^n \rightarrow \mathbb{R}^m$
+    \item $r(x)=(r_1(x),r_2(x),\ldots,r_m(x))^T$
+    \item $f(x)=\frac{1}{2}||r(x)||^2=\frac{1}{2} r(x)^Tr(x)$
+  \end{itemize}
+  \item Jacobianten 
+  \begin{itemize}
+    \item $\underset{m \times n}{J(x)}=\left[ \frac{\partial r_j}{\partial x_i} \right]_{\underset{i=1,2,\ldots,n}{j=1,2,\ldots,m}}$
+    \item $J(x)=\begin{bmatrix} \nabla r_1(x) ^T \\ \nabla r_2(x)^T \\ \vdots \\ \nabla r_m(x)^T\end{bmatrix}$
+    \item $\nabla f(x)= \sum_{j=1}^mr_j(x) \nabla r_j(x)=J(x)^Tr(x)$
+    \item $\nabla^2f(x)=\sum_{j=1}^m \nabla r_j(x) \nabla r_j(x)+\sum_{j=1}^m  r_j(x) \nabla^2 r_j(x)$ 
+    \item $\nabla^2f(x) = J(x)^T J(x) + \sum_{j=1}^m r_j(x) \nabla^2r_j(x)$
+  \end{itemize}
+\end{itemize}
+
+
+# Linear least squares
+
+\begin{itemize}
+  \item Lad $\phi(x,t)$ være en linear funktion af $x$.
+  \item Dermed er $r_j(x)=\phi(x,t_j)-y_j$ også linear.
+  \item $r(x)=Jx-y$ for et $J$ og $y$. (Ikke det samme $J(x)$ som før)
+  \item Objekt funktion: $f(x)=\frac{1}{2}||Jx-y||^2$
+  \item $\nabla f(x)=J^T(Jx-y)$
+  \item $\nabla^2f(x)=J^TJ$
+  \item $\nabla^2 r(x)=0$
+  \item $f(x)$ er konveks, at $J^TJ$ er positiv definit. 
+  \item $z^TJ^TJz=(Jz)^TJz=||Jz||^2>0, \quad \forall z$ Hvis $J\neq 0$
+  \item Derfor må et $x*$ som opfylder $\nabla f(x^*)=0$ være global minimizer.
+  \item Normal ligningerne:
+  \begin{itemize}
+    \item $\nabla f(x)=J^T(Jx-y)$ og $\nabla f(x^*)=0$
+    \item $0=\nabla f(x^*)=J^T(Jx^*-y)=J^TJx^*-J^Ty \rightarrow J^TJx^*=J^Ty$
+  \end{itemize}
+\end{itemize}
+
+## Algoritmer
+
+\begin{itemize}
+  \item Antag $m\geq n$ og at $J$ har full rank.
+  \item Cholesky:
+  \begin{itemize}
+    \item Siden $J^TJ$ er positiv definit kan $J^TJ$ cholesky faktoriseres
+    \item $LL^Tx^*=J^Ty$ lad $J^Ty=b$
+    \item Løs $Lz=b$ for $z$ med forwardsolve. Hvor $z=L^{-1}b$
+    \item Siden $L^Tx=L^{-1}b=z$, Løs $L^Tx=z$ for $x$ med backsolve.
+  \end{itemize}
+  \item QR:
+  \begin{itemize}
+    \item $J=QR$ hvor $Q$ er en ortogonal matrix og $R$ er upper triangular.
+    \item $J^TJx^*=J^Ty$
+    \item $x*=(J^TJ)^{-1}=((QR)^T(QR))^{-1}(QT)^Ty$
+    \item $x^*=(R^TQ^TQR)^{-1}R^TQ^Ty)=(R^TR)^{-1}R^TQ^Ty$
+    \item Siden $J$ har full rank, er alle diagonal indgangene i $R$ positive, og $R$ er dermed invertibel. For 2 kvadriske og invertible matricer gælder $(AB)^{-1}=B^{-1}A^{-1}$
+    \item $x^*=R^{-1}(R^T)^{-1}R^TQ^Ty$
+    \item $x^*=R^{-1}Q^Ty$
+    \item $Rx^*=Q^Ty$, løs med backsolve
+  \end{itemize}
+  \item SVD:
+  \begin{itemize}
+    \item $J=USV^T$, hvor $U,V$ er orthogonale matricer, $S$ er en diagonal matix.
+    \item $x^*=(J^TJ)^{-1}J^Ty=((USV^T)^T(USV^T))^{-1}(USV^T)^Ty$
+    \item $x^*=((VSU^T)(USV^T))^{-1}(VSU^T)y=(VS^2V^T)^{-1}(VSU^T)y$
+    \item $x^*=(V^T)^{-1}S^{-2}V^{-1}(VSU^T)y=(V^T)^{-1}S^{-1}U^Ty$
+    \item $x^*=VS^{-1}U^Ty$
+    \item Regn $VS^{-1}U^Ty$ for $x^*$. $S$ er nem at inverterer, da det er en diagonal matrix.
+  \end{itemize}
+  \item Opsumering
+  \begin{itemize}
+    \item Cholesky: "Billigste" men mindst præcise
+    \item SVD: "Dyreste" og mest præcise
+    \item QR: Ligger i midten, både med hastighed og præcision.
+  \end{itemize}
+\end{itemize}
+
+# Non-linear least squares
+
+\begin{itemize}
+  \item $\nabla f(x)=J(x)^T$
+  \item Gauss-Newton:
+  \begin{itemize}
+    \item $\nabla^2f(x_k)p_k^N=-\nabla f(x_k)$
+    \item $\nabla ^2f_k \approx J_k^TJ_k$
+    \item $J_k^TJ_kp_k^{GN}=-J_k^Tr_k$
+    \item $p_k^{GN}=-(J_k^TJ_k)^{-1}J_k^Tr_k$
+  \end{itemize}
+\item Startværdi
+\begin{itemize}
+  \item Startværdi for Gauss-Newton er svær at finde, her et eksempel på hvordan man kan i tilfældet med en logistic growth model
+  \item $y \approx \frac{\theta_1}{1 + \exp (-(\theta_2 + \theta_3 x ))}$
+  \item $\frac{y}{\theta_1} \approx \frac{1}{1 + \exp (-(\theta_2 + \theta_3 x))}$
+  \item $log\left(\frac{y/ \theta_1}{1 - y/\theta_1}\right)  \approx \theta_2 + \theta_3 x$
+  \item Hvor $\theta_1$ vælges til at være et tal større end det største i $y$. Og så findes en lineær model for dette hvor koefficienterne anvendes som startpunkt.
+\end{itemize}
+\end{itemize}
+
+
+
+
+
+# Exercise 1: OLS
+
+Explain and show different ways to solve an OLS problem (e.g. `cars` dataset) using matrix factorisations.
+
+```{r}
+data(cars)
+mod <- lm(dist ~ speed, data = cars)
+mod
+
+n <- length(cars$speed)
+design <- matrix(rep(1,n), ncol = 2, nrow = n)
+design[,2] <- cars$speed
+
+svd_design <- svd(design)
+qr_design <- qr(design)
+chol_design <- chol(t(design) %*% design)
+
+# Chol
+chol_design
+b <- t(design) %*% cars$dist
+# A <- t(chol_design) %*% chol_design
+
+z <- forwardsolve(t(chol_design), b)
+x <- backsolve(chol_design, z)
+x
+
+# QR
+R <- qr.R(qr_design)
+Q_T <- t(qr.Q(qr_design))
+Q_Ty <- Q_T %*% cars$dist
+
+solve(R, Q_Ty)
+
+# SVD
+
+U <- svd_design$u
+S <- diag(svd_design$d)
+V_T <- svd_design$v
+
+# J <- U %*% S %*% t(V_T)
+x_svd <- V_T %*% solve(S) %*% t(U) %*% cars$dist 
+x_svd
+
+```
+
+
+# Exercise 2: NLS
+
+In this exercise the `USPop` data from the `car` package is used (`data(USPop, package = "car")`).
+
+Analyse this data as an NLS problem. Include discussion of starting values (see "Nonlinear Regression and Nonlinear Least Squares in R" by John Fox & Sanford Weisberg, available at Moodle).
+
+Discuss (and maybe demonstrate) which of Gauss-Newton (`nls()`) and Levenberg-Marquardt (`minpack.lm` library) that are more fragile to starting values.
+
+Can you solve this optimisation problem in other ways than by Gauss-Newton/Levenberg-Marquardt?
+
+
+
+```{r warning=FALSE}
+library(car)
+data <- carData::USPop
+plot(data)
+set.seed(1)
+n <- length(data$population)
+x <- 0:21
+y <- data$population
+
+# Logistic growth model
+f <- function(b) {
+  b[1]/(1+ exp(-(b[2] + b[3] *x)))
+}
+
+# afledte af f
+dr1 <- function(b) {
+  1/(1 + exp(-b[2] - b[3] * x ))
+}
+dr2 <- function(b) {
+  (b[1] * exp(-b[3] *x - b[2])) / (1+ exp(-b[3] *x -b[2]))^2
+}
+dr3 <- function(b) {
+  ( b[1] * x * exp(-b[3] * x -b[2])) / ( 1 + exp(-b[3] * x - b[2] ))^2
+}
+
+j <- function(b) {
+  j1 <- dr1(b)
+  j2 <- dr2(b)
+  j3 <- dr3(b)
+  as.matrix(data.frame(j1 = j1, j2 = j2, j3 = j3))
+}
+
+r <- function(b) {
+  f(b) - y
+}
+
+d_f <- function(b, j) {
+  t(j) %*% r(b)
+}
+
+gauss_newton <- function(x0) {
+  xk <- x0
+  jk <- j(xk)
+  k <- 0
+  while (norm(d_f(xk, jk), "2") > 1e-03) {
+    k <- k +1
+    rk <- r(xk)
+    jk <- j(xk)
+    dd_f_xk <- t(jk) %*% jk
+    pk <- solve(dd_f_xk, (-t(jk) %*% rk))
+    xk <- xk + pk
+  }
+  cat("x* = ", xk, "\n", "antal iterationer = ", k)
+}
+gauss_newton(c(300,-4,0.29))
+
+# R NLS
+nls(formula = y ~ b1/(1+ exp(-(b2 + b3 *x))),start = list(b1 = 300,b2 = -4,b3 = 0.29))
+
+# find startværdi
+lm(logit(y/300) ~ x)
+
+# x* fundet
+x_stj <- c(440.8327, -4.0324, 0.2161)
+pred <- f(x_stj)
+plot_data <- data.frame(year = x, population = data$population)
+plot_f <- function(z) {
+  x_stj[1]/(1+  exp(-(x_stj[2] + x_stj[3] * z)))
+}
+
+ggplot(plot_data, aes(x,population)) +
+  geom_point(color = "red") +
+  geom_point(aes(x, pred), color = "blue") +
+  stat_function(fun = plot_f)
+
+
+```
+
+# Exercise 3: Be creative!
+
+If you have anything, put it here.
+
+
+
+
+
+<!-- ```{r} -->
+<!-- library(car) -->
+<!-- data <- carData::USPop -->
+<!-- plot(data) -->
+<!-- set.seed(1) -->
+<!-- n <- length(data$population) -->
+<!-- x <- 0:21 -->
+<!-- # x <- data$year -->
+
+<!-- f <- function(b) { -->
+<!--   b[1] * exp(b[2] * x) -->
+<!-- } -->
+<!-- y <- data$population -->
+
+<!-- dr1 <- function(b) { -->
+<!--   exp(b[2] * x) -->
+<!-- } -->
+<!-- dr2 <- function(b) { -->
+<!--   b[1] * exp(b[2] * x) * x -->
+<!-- } -->
+
+<!-- r <- function(b) { -->
+<!--   f(b) - y -->
+<!-- } -->
+
+<!-- j <- function(b) { -->
+<!--   j1 <- dr1(b) -->
+<!--   j2 <- dr2(b) -->
+<!--   as.matrix(data.frame(j1 = j1, j2 = j2)) -->
+<!-- } -->
+
+<!-- d_f <- function(b, j) { -->
+<!--   t(j) %*% r(b) -->
+<!-- } -->
+
+<!-- gauss_newton <- function(x0) { -->
+<!--   xk <- x0 -->
+<!--   jk <- j(xk) -->
+<!--   k <- 0 -->
+<!--   while (norm(d_f(xk, jk), "2") > 1e-03) { -->
+<!--     k <- k +1 -->
+<!--     rk <- r(xk) -->
+<!--     jk <- j(xk) -->
+<!--     dd_f_xk <- t(jk) %*% jk -->
+<!--     pk <- solve(dd_f_xk, (-t(jk) %*% rk)) -->
+<!--     xk <- xk + pk -->
+<!--   } -->
+<!--   cat("x* = ", xk, "\n", "antal iterationer = ", k) -->
+<!-- } -->
+<!-- gauss_newton(c(6,0.2)) -->
+
+<!-- nls(y ~ b1 * exp(b2 * x),start = list(b1 = 6,b2= 0.2)) -->
+
+<!-- x_stj <- c(15.0702772068714, 0.141844710338322) -->
+<!-- pred <- f(x_stj) -->
+
+<!-- plot_data <- data.frame(year = x, population = data$population) -->
+<!-- plot_f <- function(z) { -->
+<!--   x_stj[1] * exp(x_stj[2] * z) -->
+<!-- } -->
+
+<!-- ggplot(plot_data, aes(x,population)) + -->
+<!--   geom_point(color = "red") + -->
+<!--   geom_point(aes(x, pred), color = "blue") + -->
+<!--   stat_function(fun = plot_f) -->
+
+<!-- ``` -->
+
+<!-- Ift starting values anvendes metoden beskrevet i "Appendix-nonlinear-regression" afsnit 2. hvor funktionen vi vil beskrive $y$ med, altså $y = \beta_0 \exp^{\beta_1 x}$ omskrives sådan at parametrene danner en lineær funktion -->
+
+<!-- \begin{align*} -->
+<!--   y &= \beta_0 \exp^{\beta_1 x} \\ -->
+<!--   \frac{y}{\beta_0} &= \exp{\beta_1 x} \\ -->
+<!--   \log{\frac{y}{\beta_0}} &= \beta_1 x \\ -->
+<!--   \log{y} &= log{\beta_0} + \beta_1 x -->
+<!-- \end{align*} -->
+
+<!-- hvor lm anvendes på denne funktion, vi anvender exp på den parameteren til det konstante led. -->
+
+<!-- ```{r} -->
+
+<!-- start_lm <- lm(log(y) ~ x) -->
+<!-- start_vaerdi <- c(exp(coef(start_lm)[1]), coef(start_lm)[2]) -->
+<!-- names(start_vaerdi) <- c("b1", "b2") -->
+<!-- start_vaerdi -->
+
+<!-- ``` -->
+
+
+

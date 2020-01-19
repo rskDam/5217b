@@ -1,0 +1,547 @@
+---
+title: "Miniprojekt1.disp"
+author: "Gruppe 5.217"
+date: "13/1/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(numDeriv)
+library(plotly)
+library(microbenchmark)
+data("cars")
+```
+
+
+## Globale og lokale minimum/maximum.
+\begin{itemize}
+  \item Objekt funktion $f(x)$.
+  \item Globalt minimum $x^*$ sådan at $f(x^*)<f(x), \quad \forall x$.
+    \begin{itemize}
+      \item Typisk findes et lokalt minimum.
+      \item Hvis $f(x)$ er konveks, så er det lokale minimum lig globalt minimum
+      \item Hvis $\nabla f(x^*)=0$, $\nabla^2 f(x^*)$ er positiv semidefinit og $f$, $\nabla^2 f$ ekisterer og er kontinuert, så er $x^*$ et lokalt minimum.
+    \end{itemize}
+\end{itemize}
+
+
+## Linje søgning
+\begin{itemize}
+  \item Minimering af objektfunktionen. 
+  \item $x_{k+1}=x_k+\alpha_k p_k, \quad x_k, p_k \in \mathbb{R}, \quad \alpha_k>0.$
+  \item $\alpha_k$ er skridtlængden og $p_k$ er retningen.
+  \item Steepest/gradient decent metode:
+  \begin{itemize}
+    \item $p_k=-\nabla f_k$
+    \item Få udregninger per iteration
+    \item Mange iterationer
+  \end{itemize}
+  \item Newton's metode:
+  \begin{itemize}
+    \item $p_k=-B_k^{-1} \nabla f_k \rightarrow B_kp_k=-\nabla f_k$
+    \item I newton vælges $B_k= \nabla^2f_k$ ($B_k=I$ i steepest decent)
+    \item Få iterationer
+    \item Mange udregninger per iteration
+  \end{itemize}
+  \item Quasi-Newton metode:
+    \begin{itemize}
+      \item $B_k$ er en approksimation af hessian.
+      \item Få iterationer (muligvis lidt flere end Newton)
+      \item Mange udregniner per itreation (lidt færre end Newton)
+    \end{itemize}
+\end{itemize}
+
+## Valg af skridtlængde 
+\begin{itemize}
+  \item Wolfe conditions
+  \begin{itemize}
+    \item Sufficient decrease betingelsen:
+    \begin{itemize}
+      \item $f(x_k+\alpha_k p_k) \leq f(x_k) +c_1 \alpha_k \nabla f_k^T p_k,\quad c_1 \in (0,1)$
+      \item Ikke nok til at sikre tilstrækkelig fremgang.
+      \item Opfyldt for tilstrækkelig lille $\alpha$
+    \end{itemize}
+    \item curvature betingelsen:
+    \begin{itemize}
+      \item $\nabla f(x_k+ \alpha_kp_k)^Tp_k \geq c_2 \nabla f_k^Tp_k, \quad c_2 \in (c_1,1).$
+      \item $c_1$ fra sufficient decrease betingelsen.
+    \end{itemize}
+  \end{itemize}
+  \item Backtracking 
+  \begin{itemize}
+    \item Simpel og hurtig måde at opfylde sufficient decrease betingelsen
+  \end{itemize}
+  \item Alpha/zoom
+  \begin{itemize}
+    \item Sikrer at wolfe conditions er overholdt. 
+    \item Kræver flere udregninger end Backtracking. 
+    \item Kan resulterer i at line seach bliver hurtigere, trods ekstra tid per iteration
+  \end{itemize}
+  \item Konvergens 
+  \begin{itemize}
+    \item global konvergens betyder, at algoritmen finder et lokalt minimum, uanset begyndelsesværdien ($x_0$).
+    \item Lokal konvergens betyder, hvis begyndelsesværdien er i en tilpas lille omegn af et lokalt minimum. Finder algoritmen det lokale minimum.
+    \item Hvis objektfunktion er nedadtil begrænset, kontinuert differentiable på et åbent sæt, og at gradienten er lipschitz kontinuert på samme sæt. Gælder følgende
+    \item Steepest decent sikrer global konvergens, hvis wolfe condition er opfyldt. 
+    \item Quasi-Newton og Newton sikrer lokal konvergens, hvis wolfe conditions er opfyldt.
+  \end{itemize}
+\end{itemize}
+
+
+
+
+## Opg. 1
+
+### 1.1
+
+Gradienten er
+
+$\nabla f(a,b) = \begin{bmatrix} \frac{1}{n} \sum_i^n 2(a + bs_i - d_i) \\ \frac{1}{n} \sum_i^n 2(a + bs_i -d_i)s_i \end{bmatrix}$
+
+### 1.2, funktion, afledte, backtrack, alpha/zoom
+
+```{r Opg. 1, 1}
+ab <- c(-20,3)
+n <- 50
+ms <- function(ab) {
+  ab[1] + ab[2] * cars$speed
+}
+
+f_i <- function(ab) {
+  (ms(ab) - cars$dist)^2
+}
+
+f <- function(ab) {
+  1/n * sum(f_i(ab))
+}
+
+d_f <- function(ab) {
+  grad(f,ab)
+}
+
+dd_f <- function(ab) {
+  hessian(f,ab)
+}
+
+backtrack <- function(a_bar = 1, rho = 0.5, c = 0.2, func = f, 
+                      Dfunc = d_f, x_k = ab, c_2 = 0.5) {
+  a <- a_bar
+  itt <- 0
+  while ( (func(x_k + a *
+                (-Dfunc(x_k)) ) ) > (func(x_k) + 
+                                     c * a * t(Dfunc(x_k)) %*%
+                                     (-Dfunc(x_k))) ) {
+    itt <- itt + 1
+    a <- rho * a
+  }
+  a
+}
+
+```
+
+
+
+```{r Zoom funktion}
+#params
+c1 <- 0.001
+c2 <- 0.9
+a_lo <- 0.001
+a_hi <- 0.08
+a_0 <- 0.1
+# Implementation of Algorithm 3.6
+# (Zoom)
+zoom <- function(x_k, a_lo, a_hi, c1, c2, func = f, g = d_f) {
+  f_k <- func(x_k)
+  g_k <- g(x_k)
+  p_k <- -g_k
+  
+  k <- 0
+  k_max <- 1000   # Maximum number of iterations.
+  done <- FALSE
+  
+  while(!done) {
+    k <- k + 1
+    phi_lo <- func(x_k + a_lo*p_k)
+    
+    a_k <- 0.5*(a_lo + a_hi)
+    phi_k <- func(x_k + a_k*p_k)
+    dphi_k_0 <- g_k%*%p_k
+    l_k <- f_k + c1*a_k*dphi_k_0
+    
+    if ((phi_k > l_k) | (phi_k >= phi_lo)) {
+      a_hi <- a_k
+    } else {
+      dphi_k <- p_k %*% g(x_k + a_k*p_k)
+      
+      if (abs(dphi_k) <= -c2*dphi_k_0) {
+        return(a_k)
+      }
+      
+      if (dphi_k*(a_hi - a_lo) >= 0) {
+        a_hi <- a_lo
+      }
+      
+      a_lo <- a_k
+    }
+    
+    done <- (k > k_max)
+  }
+  
+  return(a_k)
+}
+
+alpha <- function(a_0, x_k, c1, c2, func = f, g = d_f) {
+  a_max <- 4*a_0 # Maximum step length. Can also be given as argument.
+  f_k <- func(x_k)
+  phi_k <- f_k
+  a_1 <- a_0
+  a0 <- 0
+  a_k <- a_1
+  a_k_old <- a0
+  
+  k <- 0
+  k_max <- 1000   # Maximum number of iterations.
+  done <- FALSE
+  while(!done) {
+    k <- k + 1
+    f_k <- func(x_k)
+    g_k <- g(x_k)
+    p_k <- -g_k
+    
+    phi_k_old <- phi_k
+    phi_k <- func(x_k + a_k*p_k)
+    dphi_k_0 <- g_k%*%p_k
+    l_k <- f_k + c1*a_k*dphi_k_0
+    
+    if ((phi_k > l_k) || ((k > 1) && (phi_k >= phi_k_old))) {
+      return(zoom(x_k, a_k_old, a_k, c1, c2))
+    }
+    
+    dphi_k <- p_k %*% g(x_k + a_k*p_k)
+    
+    if (abs(dphi_k) <= -c2*dphi_k_0) {
+      return(a_k)
+    }
+    
+    if (dphi_k >= 0) {
+      return(zoom(a_k, a_k_old, x_k, c1, c2))
+    }
+    
+    a_k_old <- a_k
+    a_k <- rho*a_k + (1 - rho)*a_max # e.g. rho <- 0.5
+    done <- (k > k_max)
+  }
+  
+  return(a_k)
+}
+
+
+```
+
+### 1.2, gradient descent, backtrack
+
+```{r Opg. 1, 2}
+#steepest descent
+optimer_identitet_backtrack <- function(x_0 = ab, fast = F) {
+  x_k <- x_0
+  a_k <- 2
+  if (fast == F) {
+    itt <- 0
+    steps <- c()
+    plot(dist ~ speed, cars)
+  }
+  while (norm(t(d_f(x_k)), type = "2") > 1e-5) {
+    if (fast == F) {
+      itt <- 1 + itt
+    }
+    p_k <- -d_f(x_k)
+    a_k <- backtrack(a_k, rho = 0.5, c = 0.001, f, d_f, x_k)
+    x_k <- x_k + a_k * t(p_k)
+    if (fast == F) {
+      steps[itt] <- a_k
+      if (itt %% 500 == 0) {
+        abline(x_k)
+      }
+      if (itt == 100000) {
+        break
+      }
+    }
+  }
+  if (fast == F) {
+    cat("x* = ", x_k, "\n", "f(x*) =", f(x_k), "\n",
+        "#iteration =", itt,"\n",
+        "steps = ", steps[1:5])
+  } else print(x_k)
+}
+# optimer_identitet_backtrack(ab, fast = F)
+
+
+```
+
+### 1.2, gradient descent, zoom
+
+```{r optimer identitet zoom}
+
+optimer_identitet_zoom <- function(x_0 = ab, plot = T, fast = F) {
+  x_k <- x_0
+  a_k <- 2
+  if (plot == T) {
+    plot_data <- data.frame(skaering = x_k[1], haeldning = x_k[2])
+  }
+  if (fast == F) {
+    itt <- 0
+    steps <- c()
+    plot(dist ~ speed, cars)
+  }
+  while (norm(t(d_f(x_k)), type = "2") > 1e-5) {
+    if (fast == F) {
+      itt <- 1 + itt
+    }
+    p_k <- -d_f(x_k)
+    a_k <- alpha(a_0, x_k, c1,c2)
+    x_k <- x_k + a_k * t(p_k)
+    if (plot == T) {
+      plot_data <- add_row(plot_data, skaering = x_k[1], haeldning = x_k[2])
+    }
+    if (fast == F) {
+      steps[itt] <- a_k
+      if (itt %% 500 == 0) {
+        abline(x_k)
+      }
+      if (itt == 100000) {
+        break
+      }
+    }
+  }
+  if (fast == F) {
+    cat("x* = ", x_k,"\n", 
+        "f(x*) =", f(x_k), "\n",
+        "iteration =", itt, "\n",
+        "steps = ", steps[1:5])
+  } 
+  if (plot == F & fast == F) {
+    print(x_k)
+  }
+  if (plot == T & fast == T) {
+  plot_data
+  }
+}
+plot_data <- optimer_identitet_zoom(x_0 = ab,plot =T, fast = T)
+ggplot(plot_data, aes(skaering, haeldning)) +
+  geom_point() +
+  theme_bw()
+optimer_identitet_zoom(x_0 = ab,plot = T,fast = F)
+```
+
+### Opgave 1.2 underpunkter
+
+Det der er ment med den bedste rette linje er at minimere objektfunktionen, som giver summen af afstanden til alle punkterne. 
+
+
+
+
+### Opgave 3, newton, backtrack, zoom
+
+```{r Opg. 1, 3}
+#newton
+optimer_newton_backtrack <- function(x_0 = ab, plot = F, fast = F) {
+  x_k <- x_0
+  a_k <- 2
+  if (fast == F) {
+    itt <- 0
+    steps <- c()
+    x_plot <- c()
+    y_plot <- c()
+    plot(dist ~ speed, cars)
+  }
+  while (norm(t(d_f(x_k)), type = "2") > 1e-4) {
+    if (fast == F) {
+      itt <- 1 + itt
+    }
+    p_k <- solve(dd_f(x_k), -d_f(x_k))
+    a_k <- backtrack(a_k, rho = 0.5, c = 0.01, f, d_f, x_k)
+    x_k <- x_k + a_k * t(p_k)
+    if (fast == F) {
+      if (itt %% 50 == 0) {
+        abline(x_k)
+        x_plot[itt/50] <- x_k[1]
+        y_plot[itt/50] <- x_k[2]
+      }
+      steps[itt] <- a_k
+      if (itt == 100000) {
+        break
+      }
+    }
+  }
+  if (fast == F) {
+    cat("x* = ", x_k, "\n",
+        "f(x*) =", f(x_k), "\n",
+        "iteration =", itt, "\n",
+        "steps = ", steps[1:5])
+  }
+  else if (plot == T) {
+    cbind(x_plot, y_plot)
+  } else print(x_k)
+}
+# optimer_newton_backtrack(x_0 = ab, plot = F, fast = F)
+
+```
+
+
+```{r optimer Newton, zoom}
+
+#newton
+optimer_newton_zoom <- function(x_0 = ab, plot = F, fast = F) {
+  x_k <- x_0
+  a_k <- 2
+  if (fast == F) {
+    itt <- 0
+    steps <- c()
+    x_plot <- c()
+    y_plot <- c()
+    plot(dist ~ speed, cars)
+  }
+  while (norm(t(d_f(x_k)), type = "2") > 1e-4) {
+    if (fast == F) {
+      itt <- 1 + itt
+    }
+    p_k <- solve(dd_f(x_k), -d_f(x_k))
+    a_k <- alpha(a_0, x_k, c1,c2)
+    x_k <- x_k + a_k * t(p_k)
+    if (fast == F) {
+      if (itt %% 50 == 0) {
+        abline(x_k)
+        x_plot[itt/50] <- x_k[1]
+        y_plot[itt/50] <- x_k[2]
+      }
+      steps[itt] <- a_k
+      if (itt == 100000) {
+        break
+      }
+    }
+  }
+  if (fast == F) {
+    cat("x* = ", x_k, "\n",
+        "f(x*) =", f(x_k), "\n",
+        "iteration =", itt, "\n",
+        "steps = ", steps[1:5])
+  }
+  else if (plot == T) {
+    cbind(x_plot, y_plot)
+  } else print(x_k)
+}
+# optimer_newton_zoom(x_0 = ab,plot = F,fast = F)
+
+```
+
+
+```{r micro benchmark af alle funktioner}
+
+# microbenchmark(optimer_identitet_backtrack(x_0 = ab,fast = T),
+#                optimer_identitet_zoom(x_0 = ab,plot = F,fast = T),
+#                optimer_newton_backtrack(x_0 = ab,plot = F,fast = T),
+#                optimer_newton_zoom(x_0 = ab,plot = F,fast = T), times = 1)
+
+```
+
+
+```{r forsoeg på plot, eval=FALSE, include=FALSE}
+ms_plot <- function(x,y) {
+  x + y * cars$speed
+}
+
+f_i_plot <- function(x,y) {
+  (ms_plot(x,y) - cars$dist)^2
+}
+
+f_plot <- function(x,y) {
+  1/n * sum(f_i_plot(x,y))
+}
+
+fkts_vaerdier_backtrack <- apply(xy_backtrack, 1, f)
+x <- xy_backtrack[,1]
+y <- xy_backtrack[,2]
+z <- outer(x, y, FUN = Vectorize("f_plot"))
+plot_ly(x = x, y = y, z = ~ z) %>% add_surface()  %>% 
+  add_trace(x = xy_backtrack[,1], y = xy_backtrack[,2], z = fkts_vaerdier_backtrack)
+
+fkts_vaerdier_zoom <- apply(xy_zoom, 1, f)
+x <- xy_zoom[,1]
+y <- xy_zoom[,2]
+z <- outer(x, y, FUN = Vectorize("f_plot"))
+plot_ly(x = x, y = y, z = ~z) %>% add_surface()  %>% 
+  add_trace(x = xy_zoom[,1], y = xy_zoom[,2], z = fkts_vaerdier_zoom)
+
+
+```
+
+
+```{r Opg. 1, eval=FALSE, include=FALSE}
+summary(lm(cars$dist ~ cars$speed))
+
+optim(ab, f, hessian = TRUE)
+
+
+phi_lig_nul <- function(x_k) {
+  1/n * sum((x_k[2] * cars$speed + x_k[1] - cars$dist) /(d_f(x_k)[2] * cars$speed + d_f(x_k)[1]))
+}
+
+optimer_identitet_phi <- function(x_0 = ab) {
+  x_k <- x_0
+  a_k <- 2
+  itt <- 0
+  steps <- c()
+  plot(dist ~ speed, cars)
+  while (norm(t(d_f(x_k)), type = "2") > 1e-5) {
+    itt <- 1 + itt
+    p_k <- -d_f(x_k)
+    a_k <- phi_lig_nul(x_k)
+    x_k <- x_k + a_k * t(p_k)
+    steps[itt] <- a_k
+    if (itt %% 1 == 0) {
+      abline(x_k)
+    }
+    if (itt == 100000) {
+      break
+    }
+  }
+  cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
+}
+# optimer_identitet_phi()
+
+
+optimer_newton_phi <- function(x_0 = ab) {
+  x_k <- x_0
+  a_k <- 2
+  itt <- 0
+  steps <- c()
+  x_plot <- c()
+  f_plot <- c()
+  plot(dist ~ speed, cars)
+  while (norm(t(d_f(x_k)), type = "2") > 1e-5) {
+    itt <- 1 + itt
+    p_k <- solve(dd_f(x_k), -d_f(x_k))
+    a_k <- phi_lig_nul(x_k)
+    x_k <- x_k + a_k * t(p_k)
+    if (itt %% 50 == 0) {
+      abline(x_k)
+    }
+    steps[itt] <- a_k
+    if (itt == 100000) {
+      break
+    }
+  }
+  cat("x* = ", x_k, "f(x*) =", f(x_k), "iteration =", itt, "steps = ", steps[1:5])
+}
+# optimer_newton_phi()
+
+
+
+```
+
+
