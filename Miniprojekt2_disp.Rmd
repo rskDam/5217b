@@ -1,0 +1,380 @@
+---
+title: "Miniprojekt2_disp"
+author: "Gruppe 5.217"
+date: "15/1/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(numDeriv)
+library(plotly)
+library(microbenchmark)
+data("cars")
+```
+
+## Finite differencing
+
+\begin{itemize}
+  \item approximering af de afldedte.
+  \item forward difference formula 
+  \begin{itemize}
+    \item $\frac{\partial f}{\partial x_i}(x) \approx \frac{f(x+\varepsilon e_i)-f(x)}{\varepsilon}$
+  \end{itemize}
+  \item central difference formula
+  \begin{itemize}
+    \item $\frac{\partial f}{\partial x_i}(x) \approx \frac{f(x+\varepsilon e_i)-f(x-\varepsilon e_i)}{2\varepsilon}$
+  \end{itemize}
+\end{itemize}
+
+## Forward difference 
+
+\begin{itemize}
+  \item $f'(x) \approx \frac{f(x+h)-f(x)}{h}$
+  \item Taylor's formula
+  \begin{itemize}
+    \item $f(x+h)=f(x)+hf'(x)+\frac{1}{2}h^2f''(x)+\frac{1}{6}h^3f'''(x)+O(h^4)$
+  \end{itemize}
+  \item $f'(x)=\frac{f(x+h)-f(x)}{h}-\frac{1}{2}hf''(x)-\frac{1}{6}h^2f'''(x)-O(h^3)$
+  \item truncation error
+  \begin{itemize}
+    \item som en funktion af h: $c_1h+c_2h^2+\ldots$
+    \item For $h \rightarrow 0^+$ ($0<h<1$)
+    \item $h=1/x$ for $x \rightarrow \infty$ 
+    \item $c_1h+c_2h^2+\ldots=c_1/x+c_2/x^2$
+    \item $O(1/x)=O(h)$
+  \end{itemize}
+  \item Roundoferror
+  \begin{itemize}
+    \item $f'(x) \approx \frac{f(x+h)-f(x)}{h}+\frac{\delta_1 f(x+h)-\delta_2 f(x)}{h}$ 
+    \item Løst estimate:  $|\delta_i|\leq \varepsilon_M$ for $i \in \{1,2\}$
+    \item $\varepsilon_M \frac{|f(x+h)|+|f(x)|}{h}$
+    \item $O(\frac{\varepsilon_M}{h})$
+  \end{itemize}
+  \item Total fejl
+  \begin{itemize}
+    \item $O(h)+O(\frac{\varepsilon_M}{h})$
+    \item valg af $h$
+    \begin{itemize}
+      \item $h \approx \frac{\varepsilon_M}{h}$ 
+      \item $h^2 \approx \varepsilon_M$
+      \item $h \approx \sqrt{\varepsilon_M}$
+      \item Mindste totale fejl $O(\sqrt{\varepsilon_M})$
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+
+
+## Central difference 
+
+\begin{itemize}
+  \item $f'(x)=\frac{f(x+h)-f(x-h)}{2h}-O(h^2)$
+  \item Truncation error $O(h^2)$
+  \item Roundoff error $\frac{f(x+h)-f(x-h)}{2h}+\frac{\delta_1 f(x+h)-\delta_2 f(x-h)}{2h}$
+  \item total error
+  \begin{itemize}
+    \item $O(h^2)+O(\frac{\varepsilon_M}{h})$
+    \item valg af $h$
+    \begin{itemize}
+      \item $h^2 \approx \frac{\varepsilon_M}{h}$ 
+      \item $h^3 \approx \varepsilon_M$
+      \item $h \approx \varepsilon_M^{1/3}$
+      \item Mindste totale fejl $O(\varepsilon_M^{2/3})$
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+## Algoritmisk differentation 
+
+\begin{itemize}
+  \item 
+\end{itemize}
+
+# Exercise 1
+
+We have considered forward-difference (using $f(x)$ and $f(x + h)$) and central-difference (using $f(x - h)$ and $f(x + h)$). 
+
+1. What would happen if we extend the central-difference to also use $f(x - 2h)$ and $f(x + 2h)$? Hint: consider the Taylor series up to a sufficiently high power of $h$. Hint: "five-point stencil".
+
+Når man udvider central-difference, kan man anvende en taylor udvidelse, hvorved følgende opnås:
+
+\begin{align}
+f(x+h)&=f(x)+hf'(x)+\frac{h^2}{2}f''(x)+O(h^3)\\
+f(x-h)&=f(x)-hf'(x)+\frac{h^2}{2}f''(x)+O(h^3)\\
+f(x+2h)&=f(x)+2hf'(x)+2h^2f''(x)+O(h^3)\\
+f(x-2h)&=f(x)-2hf'(x)+2h^2f''(x)+O(h^3)\\
+\end{align}
+
+Hvorved
+
+\begin{align}
+f(x+2h)+&f(x+h)-f(x-h)-f(x-2h)=6hf'(x)+0(h^3)\\
+&\Rightarrow\\
+f'(x)&=\frac{f(x+2h)+f(x+h)-f(x-h)-f(x-2h)}{6h}+O(h^2)\\
+&=\frac{f(x+2h)+f(x+h)-f(x-h)-f(x-2h)}{6h}+O(h^2)
+\end{align}
+
+Dog kan denne udvikling skaleres, hvorved det er muligt at få en større $h$ potens, ved samme antal udregnign, nemlig $4n$.
+
+\begin{align}
+8f(x+h)&=8f(x)+8hf'(x)+8\frac{h^2}{2}f''(x)+8\frac{h^3}{6}f^{(3)}(x)+8\frac{h^4}{24}f^{(4)}(x)+O(h^5)\\
+8f(x-h)&=8f(x)-8hf'(x)+8\frac{h^2}{2}f''(x)-8\frac{h^3}{6}f^{(3)}(x)+8\frac{h^4}{24}f^{(4)}(x)+O(h^5)\\
+f(x+2h)&=f(x)+2hf'(x)+2h^2f''(x)+\frac{8h^3}{6}f^{(3)}(x)+\frac{16h^4}{6}f^{(4)}(x)+O(h^5)\\
+f(x-2h)&=f(x)-2hf'(x)+2h^2f''(x)-\frac{8h^3}{6}f^{(3)}(x)-\frac{16h^4}{6}f^{(4)}(x)+O(h^5)\\
+\end{align}
+
+Hvilket medfører at 
+\begin{align}
+f(x+2h)+8f(x+h)-8f(x-h)-f(x-2h)=-4hf'(x)+8(2hf'(x))+O(h^5)
+\end{align}
+
+Den afledte af $f$ kan afledes i overstående formel, hvorved
+\begin{align}
+f'(x)=\frac{f(x+2h)+8f(x+h)-8f(x-h)+f(x-2h)}{12h}+O(h^4)
+\end{align}
+
+Hvorved at trunkerings-fejlen er reduceret til $O\left( h^4\right)$, og **Plus fejlen stadigt er $O\left( \frac{\epsilon}{h}\right)$.
+
+Hernæst kan det optimale epsilon findes;
+\begin{align}
+h^4 &\approx \frac{\varepsilon_M}{h}\\
+h^5 &\approx \varepsilon_M\\
+h &\approx \varepsilon_M^{\frac{1}{5}}\\
+\end{align}
+
+Med dette epsilon kan den totale fejl findes;
+Det er givet at den totale fejl er givet ved trukeringsfejlen, adderet med **plus fejlen, altså
+\begin{align}
+O(h^4)+O\left(\frac{\varepsilon_M}{h}\right)
+\end{align}
+
+ved at indsætte $h$ opnås at den totale fejl er
+\begin{align}
+O(\varepsilon^{\frac{4}{5}}).
+\end{align}
+
+2. Analyse this method in comparison with FD and CD (theoretically and practically on specific examples).
+
+#####**Theoretically:**
+
+
+
+#####**Practically**
+For at vise praktisk tages der udgangspunkt i et specifikt eksempel, som er at finde den afledte af funktionen $f(x)=cos(sin(x)cos(x))$ i punktet $\frac{\pi}{3}$. Funktionen defineres først.
+```{r}
+f <- function(x) cos(sin(x)*cos(x))
+```
+Herefter vises den afledte vha. FW, hvor det erindres at $h \approx \varepsilon^{1/2}$ 
+```{r}
+eps_fw <- sqrt(.Machine$double.eps)
+d_forw_f <- function(x,tol = eps_fw){
+  (f(x + tol) - f(x))/tol
+}
+
+d_forw_f(pi/3,eps_fw)
+```
+Dette resultat kan sammenlignes CD, hvor $h \approx \varepsilon^{1/3}$
+```{r}
+eps_cd <- .Machine$double.eps^(1/3)
+c_dif_f <- function(x,tol = eps_cd){
+  (f(x+tol)-f(x-tol))/(2*tol)
+}
+c_dif_f(pi/3,eps_cd)
+```
+Til sidst implementeres central difference med de to ekstra led, hvor $h \approx \varepsilon^{1/5}$
+```{r}
+eps_cd2 <- .Machine$double.eps^(1/5)
+c_dif2_f <- function(x, tol = eps_cd2){
+  (-f(x+2*tol)+8*f(x+tol)-8*f(x-tol)+f(x-2*tol))/(12*tol)
+}
+c_dif2_f(pi/3)
+```
+Dermed giver de alle samme svar, hvilket er acceptabelt, når funktionen, samt punktet er relativt pæn. Det er klart at hvis funktionen havde været sværre at differentiere vil c_dif2_f være den mest præcise af de tre overstående algoritmer, grundet deres total error. Dog tager c_dif2_f $4n$ itterationer, sammenlignet med CD som tager $2n$ og FD's $n+1$, hvorfor c_dif2_f implementeringen burde være relativt langsommere end CD og FD, ved højere dinemtioner ($n$) vil CD også blive langsommere end FD.
+
+```{r}
+library(microbenchmark)
+microbenchmark(c_dif2_f(pi/3))
+microbenchmark(c_dif_f(pi/3))
+microbenchmark(d_forw_f(pi/3))
+```
+
+3. What are the advantages and disadvantages of the different finite difference methods?
+
+
+# Exercise 2
+
+Implement forward-mode algorithmic differentiation (AD) for univariate ($\mathbb{R} \to \mathbb{R}$) functions in `R` (supporting the following operations: `+`, `-`, `*`, `/`, `sin`, `cos`, `exp`). Use on the following problem and compare it with other ways of calculating the derivatives:
+
+\[
+  f(x) = \cos[ \sin(x) \cos(x) ]
+\]
+
+Først implementeres en funktion, som 
+
+```{r}
+create_ADnum <- function(val, deriv = 1) {
+x <- list(val = val, deriv = deriv)
+class(x) <- "ADnum"
+return(x)
+}
+x <- create_ADnum(3)
+x
+```
+
+```{r}
+print.ADnum <- function(x, ...) {
+cat("value = ", x$val,
+" and deriv = ", x$deriv, "\n", sep = "")
+return(invisible(x))
+}
+#funktionen kan stadigt ikke gange, eller tage geometriske funktioner af noget.
+```
+Ydermere defineres **ting**
+```{r}
+Ops.ADnum <- function(e1, e2) {
+  # LHS constant, e.g. 2*x: e1 is a number 2, convert to ADnum
+  if (.Method[1] == "") {
+    e1 <- create_ADnum(e1, 0)
+  }
+  # RHS constant, e.g. x*2: e2 is a number 2, convert to ADnum
+  if (.Method[2] == "") {
+    e2 <- create_ADnum(e2, 0)
+  }
+  if (.Generic == "*") {
+    return(create_ADnum(e1$val * e2$val, e1$deriv*e2$val + e2$deriv*e1$val))
+  }
+  if (.Generic == "/") {
+    return(create_ADnum(e1$val / e2$val, (e1$deriv*e2$val - e2$deriv*e1$val)/(e2$val)^2))
+  }
+  if (.Generic == "+") {
+    return(create_ADnum(e1$val + e2$val, e1$deriv + e2$deriv))
+  }
+  if (.Generic == "-") {
+    return(create_ADnum(e1$val - e2$val, e1$deriv - e2$deriv))
+  }
+  stop("Function '", .Generic, "' not yet implemented for ADnum")
+}
+
+Math.ADnum <- function(x, ...) {
+  if (.Generic == "cos") {
+    # Before: create_ADnum(cos(x$val), -sin(x$val))
+    return(create_ADnum(cos(x$val), -sin(x$val) * x$deriv))
+  }
+  if (.Generic == "sin") {
+    # Before: create_ADnum(sin(x$val), cos(x$val))
+    return(create_ADnum(sin(x$val), cos(x$val) * x$deriv))
+  }
+  if (.Generic == "exp") {
+    return(create_ADnum(exp(x$val), exp(x$val) * x$deriv))
+  }
+  if (.Generic == "log") {
+    return(create_ADnum(log(x$val), 1/x$val * x$deriv))
+  }
+  stop("Function '", .Generic, "' not yet implemented for ADnum")
+}
+
+```
+
+```{r}
+asdf <- function(x) cos(sin(x)*cos(x))
+asdf(x)
+```
+
+
+**Optional**:
+
+Extend your implementation to handle multivariate ($\mathbb{R}^n \to \mathbb{R}$) functions and use on the following problem and compare it with other ways of calculating the derivatives:
+
+\[
+  f(x) = [ x_1 x_2 \sin(x_3) + \exp(x_1 x_2) ] / x_3 \tag{8.26}
+\]
+
+```{r}
+create_ADnum_vec <- function(val, deriv = 1){
+  emtlist <- list()
+  for (i in seq_along(val)) {
+    emtlist[[i]] <- create_ADnum(val[i])
+  }
+  return(emtlist)
+}
+y <- create_ADnum_vec(c(5,3,3))
+create_ADnum_vec(c(2,4,3))
+```
+
+```{r}
+test_var <- create_ADnum_vec(c(1,2,3))
+ADf <- function(x) {
+ (x[[1]]*x[[2]]*sin(x[[3]])+exp(x[[1]]*x[[2]]))/x[[3]]
+}
+ADf(test_var)
+
+g <- function(x) {
+  x_1 <- x[[1]]
+  x_2 <- x[[2]]
+  x_3 <- x[[3]]
+  g1 <- ADf(list(x_1, x_2$val, x_3$val))$deriv
+  g2 <- ADf(list(x_1$val, x_2, x_3$val))$deriv
+  g3 <- ADf(list(x_1$val, x_2$val, x_3))$deriv
+  c(g1,g2,g3)
+}
+g(test_var)
+
+Gradient <- function(g, funk) {
+  n <- length(g) # antal variable
+  pp <- c() # tom vektor til gradient
+  for (i in 1L:n) {
+    inputs <- vector("list", n) # tom vector til at putte vaerdier og ADnum ind
+    for (j in 1L:n) {
+      if (j == i) {
+        inputs[[j]] <- g[[j]] # ADnum
+      } else {
+        inputs[[j]] <- g[[j]]$val # fastholdt vaerdi
+      }
+    }
+    pp[i] <- funk(inputs)$deriv # i'te indgang i gradient
+  }
+  pp # gradient
+}
+Gradient(test_var, ADf)
+```
+
+
+
+# Exercise 3
+
+In a gradient descent problem (e.g. Rosenbrock's function or best straight line for `cars` dataset), compare the use of exact and numerical derivatives and discuss it. The comparisons can include e.g. illustrations or summary measures (number of iterations, amount of time spent, accuracy of solution and possibly other aspects).
+
+Remember that in `R`, there are many ways of registering amount of time spent. For very fast operations, you can use:
+
+```{r}
+X <- model.matrix(~ speed, cars)
+microbenchmark(lm(dist ~ speed, cars), 
+               lm.fit(X, cars$dist),
+               lm.fit(model.matrix(~ speed, cars), cars$dist), 
+               times = 100)
+```
+
+For slower operations, you can do it manually:
+
+```{r}
+time_begin <- proc.time()
+
+for (i in 1:1000) {
+  lm(dist ~ speed, cars)
+}
+
+time_end <- proc.time()
+time_duration <- time_end - time_begin
+time_duration_secs <- time_duration["user.self"]
+time_duration_secs
+```
+
+
+# Exercise 4: Be creative!
+
+If you have anything, put it here.
