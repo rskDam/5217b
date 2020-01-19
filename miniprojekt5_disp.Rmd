@@ -44,10 +44,11 @@ editor_options:
     \begin{itemize}
       \item Opstil matrix $\begin{bmatrix} c & 0^T & 0 \\ A & I & b \end{bmatrix}$, for $2n$ variable
       \item Opstil matrix $\begin{bmatrix} c  & 0 \\ A & b \end{bmatrix}$, for $n$ variable
-      \item Trin 1: Tjek hvilken indgang i $c$ som har den højeste værdi. Dette er den første søjle vi indrager i vores basis.
+      \item Trin 1: Tjek hvilken indgang i $c$ som har den højeste værdi. Dette er den første søjle vi indrager i vores basis. Kald denne søjle for $j$.
       \item Trin 2: Tjek forholdet mellem $b_i/A_{ij}, \quad \forall i$. Det $i$ som giver det laveste tal, definerer hvilken række der skal pivoteres i. 
       \item Hvis der stadig er positive tal i $c$, gå tilbage til trin 1. Ellers er problemet løst.
-      \item Nu er der dannet en basis. Værdierne for $x_1,\ldots, x_n$ kan nu aflæses. Dette gøres ved at tjekke pivo
+      \item Nu er der dannet en basis. Værdierne for $x_1,\ldots, x_n$ kan nu aflæses. Dette gøres ved at tjekke hvilke søjler og indgange der er i pivot i. hvis der er pivot i søjle $j$, indgang $i$. Betyder det, at $x_j$ skal have værdien aflæst i $b_i$. Hvis der ikke er pivot i søjle $j$ er $x_j=0$. 
+      \item I indgangen over $b$ kan $-z$ aflæses. 
     \end{itemize}
   \end{itemize}
 \end{itemize}
