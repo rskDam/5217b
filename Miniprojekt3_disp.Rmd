@@ -9,7 +9,6 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
 library(tidyverse)
 library(optimsimplex)
 library(microbenchmark)
@@ -303,7 +302,7 @@ optimer_identitet_zoom <- function(x_0, f, d_f, output = F) {
   while (norm(d_f(x_k), type = "2") > 1e-5) {
     itt <- 1 + itt
     p_k <- -d_f(x_k)
-    a_k <- alpha(a_0, x_k, c1,c2,f, d_f)
+    a_k <- alpha(a_0, x_k, 0.1, 0.9,f, d_f)
     x_k <- x_k + a_k * t(p_k)
     if (itt > 100000) {
       stop("Too many iterations")
@@ -326,7 +325,7 @@ optimer_newton_zoom <- function(x_0, f, d_f, dd_f, output = F) {
   while (norm(t(d_f(x_k)), type = "2") > 1e-4) {
     itt <- 1 + itt
     p_k <- solve(dd_f(x_k), -d_f(x_k))
-    a_k <- alpha(a_0, x_k, c1,c2, f, d_f)
+    a_k <- alpha(a_0, x_k, 0.1,0.9, f, d_f)
     x_k <- x_k + a_k * t(p_k)
     if (itt > 100000) {
       stop("Too many iterations")

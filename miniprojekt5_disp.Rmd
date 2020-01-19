@@ -27,7 +27,7 @@ editor_options:
     \item $\begin{bmatrix} a_{11}x_1+\cdots+a_{1n}x_n = b_1 \\ \vdots \\ a_{m1}x_1+\cdots + a_{mn}x_n = b_m \end{bmatrix}$ eller $Ax = b$.
     \item $x \geq 0$
   \end{itemize}
-  \item Et lineart programerings problem på kanonisk form kan bringes på standard form, ved at nye variable.
+  \item Et lineart programmerings problem på kanonisk form kan bringes på standard form, ved at nye variable.
   \item $x_{n+1},\ldots,  x_{m+n}$, en for hver bibetingelse. 
   \item max $c_1x_1+\cdots+c_nx_n=\bar{c}^T\bar{x}$
   \item Under betingerlserne.
@@ -35,4 +35,19 @@ editor_options:
   \item $\bar{x} \geq 0$
   \item hvor $\bar{A}=\begin{bmatrix} A, I \end{bmatrix}$
   \item $\bar{c}=\begin{bmatrix} c \\ 0 \end{bmatrix}$
+  \item Simplex:
+  \begin{itemize}
+    \item Linear programmeringsproblem på standart form.
+    \item $\forall b_i \geq0$
+    \item $m \leq n$
+    \item Fremgangsmetode: 
+    \begin{itemize}
+      \item Opstil matrix $\begin{bmatrix} c & 0^T & 0 \\ A & I & b \end{bmatrix}$, for $2n$ variable
+      \item Opstil matrix $\begin{bmatrix} c  & 0 \\ A & b \end{bmatrix}$, for $n$ variable
+      \item Trin 1: Tjek hvilken indgang i $c$ som har den højeste værdi. Dette er den første søjle vi indrager i vores basis.
+      \item Trin 2: Tjek forholdet mellem $b_i/A_{ij}, \quad \forall i$. Det $i$ som giver det laveste tal, definerer hvilken række der skal pivoteres i. 
+      \item Hvis der stadig er positive tal i $c$, gå tilbage til trin 1. Ellers er problemet løst.
+      \item Nu er der dannet en basis. Værdierne for $x_1,\ldots, x_n$ kan nu aflæses. Dette gøres ved at tjekke pivo
+    \end{itemize}
+  \end{itemize}
 \end{itemize}
