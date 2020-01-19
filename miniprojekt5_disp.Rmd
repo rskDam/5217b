@@ -7,8 +7,14 @@ editor_options:
   chunk_output_type: inline
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(CVXR)
+library(MASS)
+```
 
 ## Linear programering 
+
 
 \begin{itemize}
   \item Kanonisk form:
@@ -27,7 +33,7 @@ editor_options:
     \item $\begin{bmatrix} a_{11}x_1+\cdots+a_{1n}x_n = b_1 \\ \vdots \\ a_{m1}x_1+\cdots + a_{mn}x_n = b_m \end{bmatrix}$ eller $Ax = b$.
     \item $x \geq 0$
   \end{itemize}
-  \item Et lineart programmerings problem på kanonisk form kan bringes på standard form, ved at nye variable.
+  \item Et lineart programmerings problem på kanonisk form kan bringes på standard form, ved at indføre nye variable.
   \item $x_{n+1},\ldots,  x_{m+n}$, en for hver bibetingelse. 
   \item max $c_1x_1+\cdots+c_nx_n=\bar{c}^T\bar{x}$
   \item Under betingerlserne.
@@ -35,20 +41,141 @@ editor_options:
   \item $\bar{x} \geq 0$
   \item hvor $\bar{A}=\begin{bmatrix} A, I \end{bmatrix}$
   \item $\bar{c}=\begin{bmatrix} c \\ 0 \end{bmatrix}$
-  \item Simplex:
+\end{itemize}  
+
+## Simplex
+
+\begin{itemize}
+  \item Linear programmeringsproblem på standart form.
+  \item $\forall b_i \geq0$
+  \item $m \leq n$
+  \item Fremgangsmetode: 
   \begin{itemize}
-    \item Linear programmeringsproblem på standart form.
-    \item $\forall b_i \geq0$
-    \item $m \leq n$
-    \item Fremgangsmetode: 
-    \begin{itemize}
-      \item Opstil matrix $\begin{bmatrix} c & 0^T & 0 \\ A & I & b \end{bmatrix}$, for $2n$ variable
-      \item Opstil matrix $\begin{bmatrix} c  & 0 \\ A & b \end{bmatrix}$, for $n$ variable
-      \item Trin 1: Tjek hvilken indgang i $c$ som har den højeste værdi. Dette er den første søjle vi indrager i vores basis. Kald denne søjle for $j$.
-      \item Trin 2: Tjek forholdet mellem $b_i/A_{ij}, \quad \forall i$. Det $i$ som giver det laveste tal, definerer hvilken række der skal pivoteres i. 
-      \item Hvis der stadig er positive tal i $c$, gå tilbage til trin 1. Ellers er problemet løst.
-      \item Nu er der dannet en basis. Værdierne for $x_1,\ldots, x_n$ kan nu aflæses. Dette gøres ved at tjekke hvilke søjler og indgange der er i pivot i. hvis der er pivot i søjle $j$, indgang $i$. Betyder det, at $x_j$ skal have værdien aflæst i $b_i$. Hvis der ikke er pivot i søjle $j$ er $x_j=0$. 
-      \item I indgangen over $b$ kan $-z$ aflæses. 
-    \end{itemize}
+    \item Opstil matrix $\begin{bmatrix} c & 0^T & 0 \\ A & I & b \end{bmatrix}$, for $2n$ variable
+    \item Opstil matrix $\begin{bmatrix} c  & 0 \\ A & b \end{bmatrix}$, for $n$ variable
+    \item Trin 1: Tjek hvilken indgang i $c$ som har den højeste værdi. Dette er den første søjle vi indrager i vores basis. Kald denne søjle for $j$.
+    \item Trin 2: Tjek forholdet mellem $b_i/A_{ij}, \quad \forall i$. Det $i$ som giver det laveste tal, definerer hvilken række der skal pivoteres i. 
+    \item Hvis der stadig er positive tal i $c$, gå tilbage til trin 1. Ellers er problemet løst.
+    \item Nu er der dannet en basis. Værdierne for $x_1,\ldots, x_n$ kan nu aflæses. Dette gøres ved at tjekke hvilke søjler og indgange der er i pivot i. hvis der er pivot i søjle $j$, indgang $i$. Betyder det, at $x_j$ skal have værdien aflæst i $b_i$. Hvis der ikke er pivot i søjle $j$ er $x_j=0$. 
+    \item I indgangen over $b$ kan $-z$ aflæses. 
   \end{itemize}
 \end{itemize}
+
+## Lagrange
+
+\begin{itemize}
+  \item max $f(x_1, \ldots, x_n)$
+  \item Under betingelserne $\begin{bmatrix} g_1(x_1,\ldots, x_n)=c_1 \\ \vdots \\ g_m(x_1,\ldots, x_n)=c_m \end{bmatrix}$ 
+  \item ved at danne lagrangeligningen 
+  \item $\mathcal{L}(x,y,\ldots, \lambda)  = f(x,y,\ldots) - \lambda(g(x,y,\ldots ) - c$
+  \item Sæt $\nabla \mathcal{L} = 0$ og løs ligningssystemet.
+\end{itemize}
+
+# Opgaver
+
+## Task 1
+
+
+
+```{r}
+pivot_matrix <- function(M, pivot){
+
+    rp <- pivot[1]
+    cp <- pivot[2]
+    z <- (1:nrow(M))[-rp]
+    
+    M[rp,] <- M[rp,] / M[rp, cp]
+
+    for (i in z){
+        k <- M[i, cp]
+        M[i, ] <- M[i,] - k* M[rp,]
+    }
+    M
+}
+
+## Profit, der skal maximeres
+## P(x) = 5 * x_1 + 4 * x_2 + 6 * x_3
+
+M <- matrix(c(-5, 1, 2,  -4, 1, 1,  -6, 1, 3,  0, 1, 0, 0, 0, 1, 0, 25, 51), nr=3)
+M 
+
+## NB: Identitet i søjle 4,5 svarende til de to slack variable.
+## (x1=0, x2=0,x3=0, s1=25, s2=51) er brugbar løsning, men P(x)=0
+
+## Størst effekt af at øge x3 (3. søjle).
+
+cp <- 3
+M[-1, 6] / M[-1, cp]
+
+## Ligning 2 (3. række) er den kritiske
+rp <- 3
+
+## Vi pivoterer om c(rp, cp) = c(3,3)
+
+M2 <- pivot_matrix(M, c(rp,cp))
+M2
+
+## Basis i søjle 3,4; foreløbig bud på løsning (x1=0, x2=0,, x3=17 s1=8,
+## s2=0); profit er P(x)=17*6 = 102.
+
+## Næste søjle at pivotere efter er x1 (2. søjle).
+
+cp <- 2
+M2[-1, 6] / M2[-1, cp]
+## Ligning 1 (2. række) er den kritiske
+rp <- 2
+
+M3 <- pivot_matrix(M2, c(rp,cp))
+M3
+
+## Basis i søjle 2,3;  løsning (x1=0, x2=12, x3 = 13, s1=0,
+## s2=0); profit er P(x)= 12 * 4 + 13 * 6 = 126.
+
+## øverste række i første 3 søjler er 0 og derfor er vi i max
+
+
+```
+
+
+## Task 2
+
+minimer $A=2 \cdot \pi \cdot r \cdot(h+r)$\newline
+mht. $V=\pi \cdot r^2 \cdot h = 1$.
+
+Opstil Lagrangiangen $\mathcal{L}(r,h,\lambda)=2 \cdot \pi \cdot r(h+r)-\lambda(\pi \cdot r^2 \cdot h - 1)$ så løses ligningssystemet givet ved $\nabla \mathcal{L} = 0$.
+
+
+
+
+## Task 3
+
+
+## Task 4
+
+
+```{r}
+data(cars)
+glm_cars <- lm(dist  ~ speed, cars)
+# sd for beta_1
+summary(glm_cars)
+# confint for beta_1
+confint(glm_cars)
+# da beta_1 > 0 allerede, ville bibetingelsen ikke ændre på noget, vist nedeunder
+
+Y <- cars$dist
+X <- as.matrix(data.frame(rep(1,length(cars$speed)), cars$speed))
+p <- 2
+betaHat <- Variable(p)
+objective <- Minimize(sum((Y - X %*% betaHat)^2))
+problem <- Problem(objective)
+result <- solve(problem)
+result
+plot(cars)
+abline(c(-17.579173,3.932414))
+
+# I tilfælde af at det var ment at beta_0 >0  
+problem <- Problem(objective, constraints = list(betaHat[1] > 0))
+result <- solve(problem)
+result
+abline(c(3.774416e-08,2.909142e+00))
+```
