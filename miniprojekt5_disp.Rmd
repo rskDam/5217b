@@ -261,3 +261,55 @@ result <- solve(problem)
 result
 abline(c(3.774416e-08,2.909142e+00))
 ```
+
+
+```{r}
+x <- cars$speed
+y <- cars$dist
+phi <- function(b) {
+  exp(b[1])+b[2]*x
+}
+
+# afledte af f
+r <- function(b) {
+  phi(b)-y
+}
+j <- function(b) {
+  jj <- matrix(nrow=length((cars$speed)), ncol=2)
+  jj[,1]= exp(b[1])
+  jj[,2]= x 
+  jj
+}
+
+j(c(1,1))
+
+d_f <- function(b) {
+  t(j(b)) %*% r(b)
+}
+
+d_f(c(1,1))
+f <- function(x) {
+  1/2*t(r(x)) %*% r(x)
+}
+
+gauss_newton <- function(x0) {
+  xk <- x0
+  jk <- j(xk)
+  k <- 0
+  while (norm(d_f(xk), "2") > 1e-03) {
+    k <- k +1
+    rk <- r(xk)
+    jk <- j(xk)
+    dd_f_xk <- t(jk) %*% jk
+    pk <- solve(dd_f_xk+ 1.7*diag(2), (-t(jk) %*% rk))
+    xk <- xk + pk
+    print(xk)
+  }
+  cat("x* = ", xk, "\n", "antal iterationer = ", k)
+}
+lm(log(y) ~ log(x))
+gauss_newton(c(3.5,10))
+optim(c(2,2), f)
+exp(-11.5)
+```
+
