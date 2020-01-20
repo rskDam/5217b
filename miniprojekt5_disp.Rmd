@@ -203,7 +203,7 @@ Vi opstiller derfor lagrangefunktionen:
 \end{align*}
 Vi differentierer nu i forhold til $p$ og sætter det lig 0 for at se hvordan det kommer til at se ud: 
 \begin{align*}
-\partial/\partial p\mathcal{L}(p,\lambda) = 2\sigma^2pv^Tv- 1 \lamda = 0
+\partial/\partial p\mathcal{L}(p,\lambda) = 2\sigma^2pv^Tv- 1 \lambda = 0
 \end{align*}
 Og i forhold til $\lambda$
 \begin{align*}
