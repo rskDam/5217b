@@ -194,7 +194,7 @@ Var[\tilde{y}]=\sigma^2\sum_ip_i^2v_i^2
 I forhold til at middelværdien skal være $\mu$, som vi fandt ud af betød at 
 \begin{align*}
 \sum_ip_i &= 1\\
-1^TP=1
+1^Tp=1
 \end{align*}
 Vi opstiller derfor lagrangefunktionen:
 \begin{align*}
@@ -203,7 +203,7 @@ Vi opstiller derfor lagrangefunktionen:
 \end{align*}
 Vi differentierer nu i forhold til $p$ og sætter det lig 0 for at se hvordan det kommer til at se ud: 
 \begin{align*}
-\partial/\partial p\mathcal{L}(p,\lambda) = 2\sigma^2p_v_Tv = 0
+\partial/\partial p\mathcal{L}(p,\lambda) = 2\sigma^2pv^Tv = 0
 \end{align*}
 Og i forhold til $\lambda$
 \begin{align*}
