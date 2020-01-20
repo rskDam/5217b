@@ -96,8 +96,8 @@ data("cars")
   \begin{itemize}
     \item let $y=f(u), \ u=g(x), \quad x\in \mathbb{R}^n,  u \in \mathbb{R}^m$.
     \item $\frac{\partial y}{\partial x_i}= \sum_{j=1}^m \frac{\partial y}{\partial u_j} \frac{\partial u_j}{\partial x_i}$
-    \item Ide: Hvis $\frac{\partial y}{\partial x_1}, $Start med $x_1 ,\ldots , x_n$, $\frac{\partial x_1}{\partial x_1}=1$ og $\frac{\partial x_2}{\partial x_1}, \ldots  \frac{\partial x_n}{\partial x_1}$.
-    \item Evaluerer funktion indefra.
+    \item Ide: For at finde $\frac{\partial y}{\partial x_1}$ Start med $x_1 ,\ldots , x_n$, $\frac{\partial x_1}{\partial x_1}=1$ og $\frac{\partial x_2}{\partial x_1}, \ldots  \frac{\partial x_n}{\partial x_1}$.
+    \item Evaluerer funktion indefra. Gem værdierne og de afledte for hver evaluering. Indtil $y$ og $\bar{y}$ er fundet.
   \end{itemize}
   \item Reverse: 
   \begin{itemize}
