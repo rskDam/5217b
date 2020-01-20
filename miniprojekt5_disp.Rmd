@@ -148,6 +148,88 @@ Opstil Lagrangiangen $\mathcal{L}(r,h,\lambda)=2 \cdot \pi \cdot r(h+r)-\lambda(
 
 
 ## Task 3
+Betragt følgende situation: Vi har n uafhængige stokastiske variable $y_1,\ldots,y_n$ hvor $y_i\sim N(\mu,\sigma^2v_i^2)$, hvor alle $v_i$'er er kendt, og $\sigma^2$ er ukendt. 
+
+1. Vi ønsker at estimere $\mu$. Lad $\overline{y}=\frac{1}{n}\sum_{i}y_i$. Hvad er $E[\overline{y}]$ og $Var[\overline{y}]$? Kan man mon finde et bedre estimat
+for $\mu$ end et simpelt gennemsnit?
+
+\subsubsection{Svar}
+Vi anvender lineariteten for at finde $E[\overline{y}]$:
+\begin{align*}
+E[\overline{y}]=n\frac{1}{n}E[y_i] = \mu
+\end{align*}
+For at finde variansen indsætter vi blot:
+\begin{align*}
+Var[\overline{y}] = Var[\frac{1}{n}\sum_{i}y_i]=\frac{1}{n^2}Var[\sum_{i}y_i]=\frac{1}{n^2}Var[y_1+\ldots+y_n]&=\frac{1}{n^2}(Var[y_1]+\ldots+Var[y_n])\\
+&=\frac{\sigma^2}{n^2}\sum_iv_i^2
+\end{align*}
+Man kan sikkert godt finde et bedre estimat, hvis man bruger andet end nulmodellen, men det er svært ud fra de data der er givet.
+
+
+2. Lad $\tilde{y}=\sum_i p_iy_i$ hvor $p=(p_1,\ldots,p_n)$ er en vektor af kendte tal (som vi skal finde ud af at vÃ¦lge).
+Hvilken værdi af $p$ giver at $\tilde{y}$ har mindst mulig varians? Hvilke begrænsninger lægges der på $p_1,\ldots,p_n$ hvis vi Ã¸nsker at $E[\tilde{y}]=\mu$?
+
+\subsection{Svar}
+For at finde ud af hvilke værdier $p$ skal have for at minimere variansen kan vi starte med at udregne variansen
+\begin{align*}
+Var[\tilde{y}]=Var[\sum_i p_iy_i]=Var[p_1y_1+\ldots+p_ny_n]&=p_1^2Var[y_1]+\ldots+p_n^2Var[y_n]\\
+&=\sigma^2(p_1^2v_1^2+\ldots+p_n^2v_n^2)\\
+&=\sigma^2\sum_ip_i^2v_i^2
+\end{align*}
+Hvor vi kan se, at vi opnår mindst varians, hvis summen giver 0. Hvis vi vil have at $E[\tilde{y}]=\mu$, kan vi beregne den forventede værdi
+\begin{align*}
+E[\tilde{y}]=E[\sum_i p_iy_i]=p_1E[y_1]+\ldots+p_nE[y_n] = p_1\mu+\ldots+p_n\mu = \mu\sum_ip_i
+\end{align*}
+Hvilket viser at denne sum skal give 1 for at dette er tilfældet. 
+
+3. I statistik ønsker man ofte at få et parameterestimat, der er unbiased of har mindst mulig varians. Vi
+Ønsker altså at vælge p så $\tilde{y}$ har middelværdi $\mu$ og mindst mulig varians. Løs dette problem ved hjælp
+af Lagrange metoden. Løs evt. problemet på en anden måde også.
+
+\subsection{Svar}
+For at gøre dette vil vi altså minimere variansen, som vi har fundet til at være 
+\begin{align*}
+Var[\tilde{y}]=\sigma^2\sum_ip_i^2v_i^2
+\end{align*}
+I forhold til at middelværdien skal være $\mu$, som vi fandt ud af betød at 
+\begin{align*}
+\sum_ip_i &= 1\\
+1^TP=1
+\end{align*}
+Vi opstiller derfor lagrangefunktionen:
+\begin{align*}
+\mathcal{L}(p,\lambda) &= \sigma^2\sum_ip_i^2v_i^2-\lambda(\sum_i p_i-1)\\
+\mathcal{L}(p,\lambda) &= p^Tp\sigma^2v^Tv-\lambda(1^Tp-1)
+\end{align*}
+Vi differentierer nu i forhold til $p$ og sætter det lig 0 for at se hvordan det kommer til at se ud: 
+\begin{align*}
+\partial/\partial p\mathcal{L}(p,\lambda) = 2\sigma^2p_v_Tv = 0
+\end{align*}
+Og i forhold til $\lambda$
+\begin{align*}
+\partial/\partial \lambda\mathcal{L}(p,\lambda) = 1^Tp = 1
+\end{align*}
+
+Dette kan sættes op på matrix-vektor form, og man kan derefter løse et ligningssystem.
+$\begin{bmatrix} 2 \sigma^2 v_1^2 & 0 & \cdots &-1 \\0 & \ddots & & \vdots \\ \vdots  & & 2\sigma^2v_n^2\\ 1 & 1 & \cdots &0 \end{bmatrix} \begin{bmatrix} P \\ \lambda \end{bmatrix}= \begin{bmatrix} 0 \\ \vdots \\ 1 \end{bmatrix}$.
+Hvis dette løses fås $p_i=\frac{\prod_{j \neq i} v_i^2}{\sum_{j}^n v_j^2 \sum_{k>j}v_k^2}$
+
+```{r}
+nn = 10
+sigma_1 <- 2
+v <- runif(nn , 0, 5)
+AA <- matrix(data=0, nrow =nn+1, ncol= nn+1)
+for (i in 1:nn){
+  AA[i,i]= (2*sigma_1^2*v[i]^2)
+}
+AA[,nn+1] <- -1
+AA[nn+1,] <- 1
+AA[nn+1,nn+1] <- 0
+bb<- rep(0,nn+1)
+bb[nn+1] <- 1
+sum(solve(AA,bb))-solve(AA,bb)[nn+1]
+```
+
 
 
 ## Task 4
