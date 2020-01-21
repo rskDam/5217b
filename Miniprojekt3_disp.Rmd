@@ -18,6 +18,11 @@ library(numDeriv)
 ## Secant equations
 
 \begin{itemize}
+  \item $f(x_k+p)= f(x_k)+\nabla f(x_k)^Tp+\frac{1}{2}p^T \nabla^2 f(x_k)p=m_k(p)$
+  \item $m_{k+1}(p)=f_{k+1}+\nabla f_{k+1}^Tp+\frac{1}{2}p^T B_{k+1} p$
+  \item $\nabla m_{k+1}(p)= \nabla f_{k+1}^T+B_{k+1}p$
+  \item $\nabla m_{k+1}(0)= \nabla f_{k+1}$
+  \item $\nabla m_{k+1}( -\alpha p_k)=\nabla f_{k+1} -\alpha B_{k+1}p_k=\nabla f_{k}$
   \item $x_{k+1}=x_k+s_k$
   \item $B_{k+1}s_k=\nabla f_{k+1}-\nabla f_k$
   \item $y_k=\nabla f_{k+1}-\nabla f_k$
@@ -187,7 +192,6 @@ BFGS <- function(x_0, fun, dfun, zoom, stoej, output = F) {
     x_k_old <- x_k
     ifelse(zoom == T, a_k <- zoom(x_k,a_lo,a_hi,c1,c2,f,d_f), a_k <- 1)
     # ifelse(zoom == T, a_k <- alpha(a_0, x_k, c1, c2, f, d_f), a_k <- 1)
-    print(a_k)
     x_k <- x_k + a_k * p_k
     s_k <- x_k - x_k_old
     y_k <- dfun(x_k) - dfun(x_k_old)
